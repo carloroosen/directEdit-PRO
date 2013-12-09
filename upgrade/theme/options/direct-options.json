@@ -1,0 +1,54 @@
+{
+	"image": {
+		"type": "image",
+		"imgFileFormat": "jpg",
+		"imgQuality": 70,
+		"constraints" : {
+			"minWidth": 800,
+			"maxWidth": 800,
+			"minHeight": 400,
+			"maxHeight": 400
+		}
+	},
+	"link": {
+		"type": "link",
+		"buttonEditLink": true,
+		"buttonFollowLink": true,
+		"prefixes" : [["/", "internal link"]]
+	},
+	"link-post": {
+		"type": "link",
+		"buttonDelete": false,
+		"buttonShowHide": false,
+		"buttonFollowLink": true
+	},
+	"file": {
+		"type": "file"
+	},
+	"list": {
+		"type": "list",
+		"listSelector" : "ul",
+		"divClasses" : {
+			"left" : "group-left",
+			"right" : "group-right"
+		},
+		"commands" : {
+			"move-left" : {
+				"caption" : "move left",
+				"div" : "left"
+			},
+			"move-right" : {
+				"caption" : "move right",
+				"div" : "right"
+			},
+			"delete" : {
+				"caption" : "delete",
+				"div" : "left"
+			},
+			"add" : {
+				"caption" : "insert after",
+				"div" : "right"
+			}
+		}
+	}
+}
