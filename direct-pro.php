@@ -357,7 +357,7 @@ function de_copy_de_files() {
 	else
 		$options = array();
 
-	$target = get_template_directory();
+	$target = get_stylesheet_directory();
 	
 	// Create auxiliary dirs and copy login form template
 	if ( ! file_exists( $target . '/de_webform' ) ) {

@@ -161,7 +161,7 @@ function de_webform_get_templates( $post_type ) {
 	$form_templates = array();
 
 	if ( is_array( $templates ) ) {
-		$base = array( trailingslashit( get_template_directory() ), trailingslashit( get_stylesheet_directory() ) );
+		$base = array( trailingslashit( get_stylesheet_directory() ), trailingslashit( get_stylesheet_directory() ) );
 
 		foreach ( $templates as $template ) {
 			$basename = str_replace( $base, '', $template );
@@ -345,8 +345,8 @@ function de_webform_save_template( $post_id, $post ) {
 function de_webform_set_template( $template ) {
 	global $direct_queried_object;
 	
-	if ( $direct_queried_object->post_type == 'de_webform' && get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) && file_exists( get_template_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) ) ) {
-		$template = get_template_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true );
+	if ( $direct_queried_object->post_type == 'de_webform' && get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) && file_exists( get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) ) ) {
+		$template = get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true );
 	}
 	
 	return $template;

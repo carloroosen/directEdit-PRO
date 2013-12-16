@@ -15,12 +15,12 @@ class De_Snippet {
 		
 		$content = '';
 		
-		if ( file_exists ( get_template_directory() . '/snippets/' . $snippet . '-edit.php' ) && De_Store::is_editable( $owner ) ) {
-			$filename = get_template_directory() . '/snippets/' . $snippet . '-edit.php';
-		} elseif ( file_exists ( get_template_directory() . '/snippets/' . $snippet . '-view.php' ) && ! De_Store::is_editable( $owner ) ) {
-			$filename = get_template_directory() . '/snippets/' . $snippet . '-view.php';
-		} elseif ( file_exists ( get_template_directory() . '/snippets/' . $snippet . '.php' ) ) {
-			$filename = get_template_directory() . '/snippets/' . $snippet . '.php';
+		if ( file_exists ( get_stylesheet_directory() . '/snippets/' . $snippet . '-edit.php' ) && De_Store::is_editable( $owner ) ) {
+			$filename = get_stylesheet_directory() . '/snippets/' . $snippet . '-edit.php';
+		} elseif ( file_exists ( get_stylesheet_directory() . '/snippets/' . $snippet . '-view.php' ) && ! De_Store::is_editable( $owner ) ) {
+			$filename = get_stylesheet_directory() . '/snippets/' . $snippet . '-view.php';
+		} elseif ( file_exists ( get_stylesheet_directory() . '/snippets/' . $snippet . '.php' ) ) {
+			$filename = get_stylesheet_directory() . '/snippets/' . $snippet . '.php';
 		} elseif ( ! empty( $this->snippet_default ) ) {
 			$filename = $this->snippet_default;
 		}

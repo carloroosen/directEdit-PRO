@@ -269,10 +269,10 @@ function de_plugin_menu() {
 			
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'copy_files' == $_REQUEST['action'] ) {
-			if ( ! file_exists( get_template_directory() . '/direct-edit' ) ) {
-				$result = de_copy( DIRECT_PATH . 'theme', get_template_directory() . '/direct-edit' );
+			if ( ! file_exists( get_stylesheet_directory() . '/direct-edit' ) ) {
+				$result = de_copy( DIRECT_PATH . 'theme', get_stylesheet_directory() . '/direct-edit' );
 				if ( ! $result ) {
-					@de_rmdir( get_template_directory() . '/direct-edit' );
+					@de_rmdir( get_stylesheet_directory() . '/direct-edit' );
 					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=copy_files' ) );
 					die();
 				}
@@ -280,8 +280,8 @@ function de_plugin_menu() {
 			
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'remove_files' == $_REQUEST['action'] ) {
-			if ( file_exists( get_template_directory() . '/direct-edit' ) ) {
-				de_rmdir( get_template_directory() . '/direct-edit' );
+			if ( file_exists( get_stylesheet_directory() . '/direct-edit' ) ) {
+				de_rmdir( get_stylesheet_directory() . '/direct-edit' );
 			}
 			
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
@@ -363,16 +363,16 @@ function de_plugin_menu() {
 			if ( empty( $options[ $option->name ] ) ) {
 				$options[ $option->name ] = $option;
 				
-				if ( ! file_exists( get_template_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php' ) ) {
+				if ( ! file_exists( get_stylesheet_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php' ) ) {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/archive-custom_post_type.php' );
 					$template = str_replace( array( '{name}' ), array( sanitize_title( $option->name ) ), $template );
-					file_put_contents ( get_template_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php', $template );
-					chmod( get_template_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php', 0777 );
+					file_put_contents ( get_stylesheet_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php', $template );
+					chmod( get_stylesheet_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php', 0777 );
 				}
-				if ( ! file_exists( get_template_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php' ) ) {
+				if ( ! file_exists( get_stylesheet_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php' ) ) {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/single-custom_post_type.php' );
-					file_put_contents ( get_template_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php', $template );
-					chmod( get_template_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php', 0777 );
+					file_put_contents ( get_stylesheet_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php', $template );
+					chmod( get_stylesheet_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php', 0777 );
 				}
 
 				// Create list page
@@ -515,7 +515,7 @@ function de_plugin_menu() {
 				}
 
 				// Check login form template
-				$target = get_template_directory();
+				$target = get_stylesheet_directory();
 
 				// Create auxiliary dir and copy form template
 				if ( ! file_exists( $target . '/de_webform' ) ) {
@@ -622,7 +622,7 @@ function de_plugin_menu() {
 					update_option( 'de_login_form', $loginPostId );
 					
 					// Check login form template
-					$target = get_template_directory();
+					$target = get_stylesheet_directory();
 
 					// Create auxiliary dir and copy login form template
 					if ( ! file_exists( $target . '/de_webform' ) ) {
@@ -698,7 +698,7 @@ function de_plugin_page() {
 	if ( get_option( 'de_options_wp_hooks' ) )
 		$options_wp_hooks = unserialize( base64_decode( get_option( 'de_options_wp_hooks' ) ) );
 	else
-		$options_wp_hooks = array();
+		$options_wp_hooks = array( 'title' => 1, 'content' => 1, 'excerpt' => 1 );
 
 	if ( De_Language_Wrapper::has_multilanguage() ) {
 		if ( is_array( unserialize( get_option( 'de_options_show_languages' ) ) ) )
@@ -741,7 +741,7 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
-		<?php if ( ! file_exists( get_template_directory() . '/direct-edit' ) ) { ?>
+		<?php if ( ! file_exists( get_stylesheet_directory() . '/direct-edit' ) ) { ?>
 		<h3><?php _e( 'copy files to current theme', 'direct-edit' );?></h3>
 		<div class="inside">
 			<form method="post">
