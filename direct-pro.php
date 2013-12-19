@@ -24,10 +24,12 @@ add_action( 'init', 'de_capabilities' );
 add_action( 'login_init', 'de_login_redirect' );
 add_action( 'plugins_loaded', 'de_extensions_include' );
 add_action( 'pre_get_posts', 'de_filter_posts' );
+add_action( 'template_include', 'de_custom_template', 900 );
 add_action( 'template_redirect', 'de_404_override' );
 add_action( 'template_redirect', 'de_nonactive_languages_redirect' );
 add_action( 'template_redirect', 'de_perform_actions', 5 );
 add_action( 'wp', 'de_add_filter_permalink' );
+add_action( 'wp', 'de_custom_include', 1 );
 add_action( 'wp', 'de_handle_url', 0 );
 add_action( 'wp_print_footer_scripts', 'de_page_options', 20 );
 
@@ -423,7 +425,7 @@ function de_create_post_types() {
 				'public' => true,
 				'hierarchical' => true,
 				'supports' => array( 'title', 'editor', 'author', 'page-attributes' ),
-				'rewrite' => array( 'slug' => sanitize_title( $option->name ) ),
+				'rewrite' => array( 'slug' => sanitize_title( 'de_' . $option->name ) ),
 				'has_archive' => true
 			)
 		);
@@ -476,6 +478,33 @@ function de_filter_posts( $query ) {
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && ! empty( $_SESSION[ 'de_show_all' ] ) && ! is_admin() ) {
 		$query->query_vars[ 'post_status' ] = 'any';
 	}
+}
+
+function de_custom_template( $template ) {
+	global $direct_queried_object;
+
+	if ( $direct_queried_object ) {
+		if ( get_option( 'de_options_custom_page_types' ) )
+			$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
+		else
+			$options = array();
+
+		foreach( $options as $option ) {
+			if ( $direct_queried_object->post_type == 'de_' . sanitize_title( $option->name ) ) {
+				// dE post type
+				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php' ) ) {
+					return get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php';
+				}
+			} elseif ( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ) == $direct_queried_object->ID || de_is_language_post( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ), $direct_queried_object->ID ) ) {
+				// dE page for dE post type
+				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php' ) ) {
+					return get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php';
+				}
+			}
+		}
+	}
+	
+	return $template;
 }
 
 function de_404_override() {
@@ -639,6 +668,26 @@ function de_add_filter_permalink() {
 	}
 }
 
+function de_custom_include() {
+	global $post_type;
+
+	if ( $post_type ) {
+		if ( get_option( 'de_options_custom_page_types' ) )
+			$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
+		else
+			$options = array();
+
+		foreach( $options as $option ) {
+			if ( $post_type == 'de_' . sanitize_title( $option->name ) ) {
+				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php' ) ) {
+					include get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php';
+					return;
+				}
+			}
+		}
+	}
+}
+
 function de_handle_url() {
 	global $wp;
 	global $post_type;
@@ -706,7 +755,7 @@ function de_handle_url() {
 				foreach( get_post_types( array( 'show_ui' => true ), 'objects' ) as $pt ) {
 					if ( get_option( 'de_page_for_' . $pt->name ) == $post->ID || de_is_language_post( get_option( 'de_page_for_' . $pt->name ), $post->ID ) ) {
 						$direct_queried_object = $post;
-						
+
 						$request[ 'post_type' ] = $pt->name;
 						$request[ 'posts_per_page' ] = -1;
 						$request[ 'orderby' ] = 'menu_order';

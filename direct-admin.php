@@ -433,6 +433,29 @@ function de_plugin_menu() {
 			}
 
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+		} elseif ( isset( $_REQUEST['action'] ) && 'create_template' == $_REQUEST['action'] ) {
+			$option = $wpdb->escape( $_REQUEST[ 'custom_page_type' ] );
+
+			if( ! empty( $options[ $option ] ) && is_dir( DIRECT_PATH . 'pro/custom/' . $_REQUEST[ 'template_name' ] ) ) {
+				$option = $options[ $option ];
+
+				$target = get_stylesheet_directory();
+				if ( ! file_exists( $target . '/custom' ) ) {
+					umask( 0 );
+					mkdir( $target . '/custom', 0777 );
+				}
+				if ( file_exists( $target . '/custom/' . sanitize_title( $option->name ) ) ) {
+					de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
+				}
+				$result = de_copy( DIRECT_PATH . 'pro/custom/' . $_REQUEST[ 'template_name' ], $target . '/custom/' . sanitize_title( $option->name ) );
+				if ( ! $result ) {
+					@de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
+					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_template' ) );
+					die();
+				}
+			}
+
+			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'delete' == $_REQUEST['action'] ) {
 			$option = $wpdb->escape( $_REQUEST[ 'custom_page_type' ] );
 
@@ -465,6 +488,11 @@ function de_plugin_menu() {
 				unset( $options[ $option->name ] );
 				update_option( 'de_options_custom_page_types', base64_encode( serialize( $options ) ) );
 				
+				$target = get_stylesheet_directory();
+				if ( file_exists( $target . '/custom/' . sanitize_title( $option->name ) ) ) {
+					de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
+				}
+
 				if ( De_Language_Wrapper::has_multilanguage() ) {
 					De_Language_Wrapper::de_post_type_delete( 'de_' . sanitize_title( $option->name ) );
 				}
@@ -789,23 +817,54 @@ function de_plugin_page() {
 		<?php } ?>
 		<h3><?php _e( 'custom page types', 'direct-edit' );?></h3>
 		<div class="inside">
-			<form method="post">
-				<input type="hidden" name="action" value="create" />
-				<table border="0">
-					<tbody>
-						<tr>
-							<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
-							<td><input type="text" name="custom_page_type" id="custom_page_type" style="width: 240px;" /> <input type="submit" value="create" /></td>
-						</tr>
-						<?php foreach ( $options as $option ) { ?>
-						<tr>
-							<td></td>
-							<td><?php echo $option->name; ?> <input type="button" onclick="location.href='?page=direct-edit&action=delete&custom_page_type=<?php echo $option->name; ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" /></td>
-						</tr>
-						<?php } ?>
-					</tbody>
-				</table>
-			</form>
+			<table border="0">
+				<tbody>
+					<tr>
+						<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
+						<td><form method="post"><input type="hidden" name="action" value="create" /><input type="text" name="custom_page_type" id="custom_page_type" style="width: 240px;" /> <input type="submit" value="create" /></form></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<table border="0">
+								<tbody>
+									<?php foreach ( $options as $option ) { ?>
+									<tr>
+										<td><?php echo $option->name; ?></td>
+										<td>
+											<form method="post">
+												<input type="hidden" name="action" value="create_template" />
+												<input type="hidden" name="custom_page_type" value="<?php echo $option->name; ?>" />
+												<select name="template_name">
+													<?php
+														$source = DIRECT_PATH . 'pro/custom';
+														$d = dir( $source );
+														while ( FALSE !== ( $entry = $d->read() ) ) {
+															if ( $entry == '.' || $entry == '..' )
+																continue;
+
+															if ( is_dir( "$source/$entry" ) ) {
+																?>
+																<option value="<?php echo $entry; ?>"><?php echo $entry; ?></option>
+																<?php
+															}
+														}
+													?>
+												</select>
+												<input type="submit" value="create" />
+											</form>
+										</td>
+										<td>
+											<input type="button" onclick="location.href='?page=direct-edit&action=delete&custom_page_type=<?php echo urlencode( $option->name ); ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
+										</td>
+									</tr>
+									<?php } ?>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<?php if ( post_type_exists( 'de_webform' ) ) { ?>
 		<h3><?php _e( 'custom webforms', 'direct-edit' );?></h3>
