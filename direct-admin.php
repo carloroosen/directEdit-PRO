@@ -465,7 +465,9 @@ function de_plugin_menu() {
 				unset( $options[ $option->name ] );
 				update_option( 'de_options_custom_page_types', base64_encode( serialize( $options ) ) );
 				
-				De_Language_Wrapper::de_post_type_delete( 'de_' . sanitize_title( $option->name ) );
+				if ( De_Language_Wrapper::has_multilanguage() ) {
+					De_Language_Wrapper::de_post_type_delete( 'de_' . sanitize_title( $option->name ) );
+				}
 			}
 
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
@@ -798,7 +800,7 @@ function de_plugin_page() {
 						<?php foreach ( $options as $option ) { ?>
 						<tr>
 							<td></td>
-							<td><a href="?page=direct-edit&action=delete&custom_page_type=<?php echo $option->name; ?>"><?php _e( 'delete', 'direct-edit' ); ?></a> <?php echo $option->name; ?></td>
+							<td><?php echo $option->name; ?> <input type="button" onclick="location.href='?page=direct-edit&action=delete&custom_page_type=<?php echo $option->name; ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" /></td>
 						</tr>
 						<?php } ?>
 					</tbody>
