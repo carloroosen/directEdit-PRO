@@ -425,7 +425,7 @@ function de_create_post_types() {
 				'public' => true,
 				'hierarchical' => true,
 				'supports' => array( 'title', 'editor', 'author', 'page-attributes' ),
-				'rewrite' => array( 'slug' => sanitize_title( 'de_' . $option->name ) ),
+				'rewrite' => array( 'slug' => sanitize_title( $option->name ) ),
 				'has_archive' => true
 			)
 		);
@@ -696,9 +696,9 @@ function de_handle_url() {
 	global $wp_query;
 
 	if ( ! is_admin() ) {
-		if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
-			$p = De_Url::get_post( $wp->request );
+		$p = De_Url::get_post( $wp->request );
 
+		if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' || de_is_de_archive( $p->ID ) ) {
 			if ( $p && $p->ID && ( empty( $wp->query_vars['page_id'] ) || $wp->query_vars['page_id'] == $p->ID ) ) {
 				status_header( 200 );
 				$wp_query->is_404 = false;

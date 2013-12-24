@@ -421,7 +421,7 @@ function de_plugin_menu() {
 							'public' => true,
 							'hierarchical' => true,
 							'supports' => array( 'title', 'editor', 'page-attributes' ),
-							'rewrite' => array( 'slug' => sanitize_title( 'de_' . $option->name ) ),
+							'rewrite' => array( 'slug' => sanitize_title( $option->name ) ),
 							'has_archive' => true
 						)
 					);
