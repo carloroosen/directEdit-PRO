@@ -22,7 +22,7 @@ add_action( 'de_webform_form_validate', 'de_webform_validate' );
 add_action( 'de_webform_form_action', 'de_webform_action' );
 add_action( 'save_post', 'de_webform_save_template', 10, 2 );
 add_action( 'template_include', 'de_webform_set_template', 0 );
-add_action( 'template_redirect', 'de_webform_process', 20 );
+add_action( 'template_include', 'de_webform_process', 20 );
 
 function de_webform_add_template_metabox() {
 	add_meta_box( 'de_webform_general', __( 'General', 'direct-edit' ), 'de_webform_general_metabox', 'de_webform', 'normal', 'core' );
@@ -352,7 +352,7 @@ function de_webform_set_template( $template ) {
 	return $template;
 }
 
-function de_webform_process() {
+function de_webform_process( $template ) {
 	global $post;
 	global $wpdb;
 	global $de_webform_errors;
@@ -469,4 +469,6 @@ function de_webform_process() {
 			}
 		}
 	}
+	
+	return $template;
 }

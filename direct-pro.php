@@ -24,12 +24,11 @@ add_action( 'init', 'de_capabilities' );
 add_action( 'login_init', 'de_login_redirect' );
 add_action( 'plugins_loaded', 'de_extensions_include' );
 add_action( 'pre_get_posts', 'de_filter_posts' );
-add_action( 'template_include', 'de_custom_template', 900 );
+add_action( 'template_include', 'de_custom_template' );
 add_action( 'template_redirect', 'de_404_override' );
 add_action( 'template_redirect', 'de_nonactive_languages_redirect' );
 add_action( 'template_redirect', 'de_perform_actions', 5 );
 add_action( 'wp', 'de_add_filter_permalink' );
-add_action( 'wp', 'de_custom_include', 1 );
 add_action( 'wp', 'de_handle_url', 0 );
 add_action( 'wp_print_footer_scripts', 'de_page_options', 20 );
 
@@ -483,27 +482,34 @@ function de_filter_posts( $query ) {
 function de_custom_template( $template ) {
 	global $direct_queried_object;
 
-	if ( $direct_queried_object ) {
-		if ( get_option( 'de_options_custom_page_types' ) )
-			$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
-		else
-			$options = array();
+	if ( get_option( 'de_options_custom_page_types' ) )
+		$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
+	else
+		$options = array();
 
+	if ( $direct_queried_object ) {
 		foreach( $options as $option ) {
 			if ( $direct_queried_object->post_type == 'de_' . sanitize_title( $option->name ) ) {
 				// dE post type
 				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php' ) ) {
-					return get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php';
+					$template = get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php';
 				}
 			} elseif ( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ) == $direct_queried_object->ID || de_is_language_post( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ), $direct_queried_object->ID ) ) {
 				// dE page for dE post type
 				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php' ) ) {
-					return get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php';
+					$template = get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php';
 				}
 			}
 		}
 	}
 	
+	// Include custom functions.php
+	foreach( $options as $option ) {
+		if ( strpos( $template, get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) == 0 && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php' ) ) {
+			include get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php';
+		}
+	}
+
 	return $template;
 }
 
@@ -665,26 +671,6 @@ function de_add_filter_permalink() {
 		add_filter( 'page_link', 'de_filter_permalink', 10, 2 );
 		add_filter( 'post_link', 'de_filter_permalink', 10, 2 );
 		add_filter( 'post_type_link', 'de_filter_permalink', 10, 2 );
-	}
-}
-
-function de_custom_include() {
-	global $post_type;
-
-	if ( $post_type ) {
-		if ( get_option( 'de_options_custom_page_types' ) )
-			$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
-		else
-			$options = array();
-
-		foreach( $options as $option ) {
-			if ( $post_type == 'de_' . sanitize_title( $option->name ) ) {
-				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php' ) ) {
-					include get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php';
-					return;
-				}
-			}
-		}
 	}
 }
 

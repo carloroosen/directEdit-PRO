@@ -453,6 +453,12 @@ function de_plugin_menu() {
 					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_template' ) );
 					die();
 				}
+				
+				// Setup hook
+				if ( file_exists( $target . '/custom/' . sanitize_title( $option->name ) . '/functions.php' ) ) {
+					include $target . '/custom/' . sanitize_title( $option->name ) . '/functions.php';
+					do_action( 'de_custom_' . $_REQUEST[ 'template_name' ] . '_setup', sanitize_title( $option->name ) );
+				}
 			}
 
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
@@ -832,27 +838,47 @@ function de_plugin_page() {
 									<tr>
 										<td><?php echo $option->name; ?></td>
 										<td>
-											<form method="post">
-												<input type="hidden" name="action" value="create_template" />
-												<input type="hidden" name="custom_page_type" value="<?php echo $option->name; ?>" />
-												<select name="template_name">
-													<?php
-														$source = DIRECT_PATH . 'pro/custom';
-														$d = dir( $source );
-														while ( FALSE !== ( $entry = $d->read() ) ) {
-															if ( $entry == '.' || $entry == '..' )
-																continue;
+											<?php
+											if ( is_dir( DIRECT_PATH . 'pro/custom' ) ) {
+												$source = DIRECT_PATH . 'pro/custom';
+												$d = dir( $source );
+												
+												$c = 0;
+												while ( FALSE !== ( $entry = $d->read() ) ) {
+													if ( $entry == '.' || $entry == '..' )
+														continue;
 
-															if ( is_dir( "$source/$entry" ) ) {
-																?>
-																<option value="<?php echo $entry; ?>"><?php echo $entry; ?></option>
-																<?php
-															}
-														}
+													if ( is_dir( "$source/$entry" ) ) {
+														$c ++;
+													}
+												}
+												
+												if ( $c ) {
+													$d->rewind();
 													?>
-												</select>
-												<input type="submit" value="create" />
-											</form>
+													<form method="post">
+														<input type="hidden" name="action" value="create_template" />
+														<input type="hidden" name="custom_page_type" value="<?php echo $option->name; ?>" />
+														<select name="template_name">
+															<?php
+																while ( FALSE !== ( $entry = $d->read() ) ) {
+																	if ( $entry == '.' || $entry == '..' )
+																		continue;
+
+																	if ( is_dir( "$source/$entry" ) ) {
+																		?>
+																		<option value="<?php echo $entry; ?>"><?php echo $entry; ?></option>
+																		<?php
+																	}
+																}
+															?>
+														</select>
+														<input type="submit" value="create" />
+													</form>
+													<?php
+												}
+											}
+											?>
 										</td>
 										<td>
 											<input type="button" onclick="location.href='?page=direct-edit&action=delete&custom_page_type=<?php echo urlencode( $option->name ); ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
