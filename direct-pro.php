@@ -505,11 +505,12 @@ function de_custom_template( $template ) {
 	
 	// Include custom functions.php
 	foreach( $options as $option ) {
-		if ( strpos( $template, get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) == 0 && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php' ) ) {
-			include get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/functions.php';
+		if ( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) == dirname( $template ) && file_exists( dirname( $template ) . '/functions.php' ) ) {
+			include dirname( $template ) . '/functions.php';
+			break;
 		}
 	}
-
+	
 	return $template;
 }
 
@@ -518,7 +519,6 @@ function de_404_override() {
 	global $post_type;
 	global $post;
 	global $wp;
-	global $de_current_template;
 
 	if ( is_404() ) {
 		if( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
@@ -584,7 +584,6 @@ function de_perform_actions() {
 	global $post_type;
 	global $post;
 	global $wp;
-	global $de_current_template;
 	global $direct_queried_object;
 	
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) ) {
@@ -929,6 +928,7 @@ function de_page_options() {
 <div class="direct-editable" id="direct-page-options" data-global-options="page-options" style="display: none;">
 	<form>
 		<input type="hidden" name="postId" id="postId" value="<?php echo $direct_queried_object->ID; ?>" />
+		<input type="hidden" name="templateName" id="templateName" value="<?php echo de_get_current_template(); ?>" />
 		<div style="float:left; width:46%; padding:5px 2%;">
 			<h5><?php _e( 'Title', 'direct-edit' ); ?></h5>
 			<input type="text" name="de_title" id="de_title" value="<?php direct_bloginfo( 'title' ); ?>" />
@@ -972,8 +972,8 @@ function de_page_options() {
 			<?php
 			if ( get_post_meta( $direct_queried_object->ID, 'de_new_page', true ) ) {
 				?>
-				if ( confirm( 'Do you want to show this page?' ) ) {
-					location.href = '<?php echo get_permalink( $direct_queried_object->ID ) . '?de_show=1'; ?>';
+				if ( confirm( '<?php _e( 'Do you want to show this page?' ); ?>' ) ) {
+					location.href = '<?php echo add_query_arg( array( 'de_show' => 1 ), De_Url::get_url( $direct_queried_object->ID ) ); ?>';
 				}
 				<?php
 				delete_post_meta( $direct_queried_object->ID, 'de_new_page' );
