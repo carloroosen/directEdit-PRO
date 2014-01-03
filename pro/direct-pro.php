@@ -453,7 +453,9 @@ function de_login_redirect() {
 		$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?loggedout=true';
 
 		if ( $action != 'logout' ) {
-			add_filter( 'post_type_link', 'de_filter_permalink', 10, 2 );
+			if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
+				add_filter( 'post_type_link', 'de_filter_permalink', 10, 2 );
+			}
 			if ( strpos( de_get_login_form_permalink(), 'wp-login.php' ) === false ) {
 				wp_redirect( de_get_login_form_permalink() );
 				exit;
