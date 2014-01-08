@@ -811,14 +811,22 @@ function de_nav_menu_filter( $items, $args ) {
 	// Look for current menu item
 	// Fill in $itemsById array
 	foreach ( $items as $key => $item ) {
-		if ( $item->current && $item->type != 'custom' )
-			$current = $items[ $key ];
+		if ( $item->current && $item->type != 'custom' ) {
+			if ( empty( $_GET[ 'de_add' ] ) ) {
+				$current = $items[ $key ];
+			} else {
+				if ( array_search( 'current-menu-item', $items[ $key ]->classes ) !== false ) {
+					unset( $items[ $key ]->classes[ array_search( 'current-menu-item', $items[ $key ]->classes ) ] );
+				}
+			}
+		}
 		
 		$itemsById[ $item->ID ] = $key;
 	}
 
 	// Set current menuitem
 	if ( empty( $current ) ) {
+		echo 'I am here';
 		foreach ( $items as $key => $item ) { 
 			// Current page
 			if( $item->type == 'post_type' && $direct_queried_object && ( $item->object_id == $direct_queried_object->ID || de_is_language_post( $item->object_id, $direct_queried_object->ID ) ) && ! $item->current ) {
@@ -831,7 +839,7 @@ function de_nav_menu_filter( $items, $args ) {
 			}
 			
 			// Blog archive page
-			if ( $item->type == 'post_type'&& $post_type == 'post' && de_is_home( $item->object_id ) ) {
+			if ( $item->type == 'post_type' && $post_type == 'post' && de_is_home( $item->object_id ) ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
 				
@@ -841,7 +849,7 @@ function de_nav_menu_filter( $items, $args ) {
 			}
 			
 			// dE post type archive page
-			if( $item->type == 'post_type'&& $listPage && ( $item->object_id == $listPage->ID || de_is_language_post( $item->object_id, $listPage->ID ) ) ) {
+			if( $item->type == 'post_type' && $listPage && ( $item->object_id == $listPage->ID || de_is_language_post( $item->object_id, $listPage->ID ) ) ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
 				
