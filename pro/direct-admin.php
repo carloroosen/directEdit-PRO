@@ -728,7 +728,7 @@ function de_plugin_page() {
 		$options = array();
 	
 	if ( post_type_exists( 'de_webform' ) ) {
-		$args = array( 'post_type' => 'de_webform', 'orderby' => 'title' );
+		$args = array( 'post_type' => 'de_webform', 'orderby' => 'title', 'posts_per_page' => -1 );
 		if ( get_option( 'de_wp_login_redirect' ) ) {
 			$args[ 'exclude' ] = array( get_option( 'de_login_form' ) );
 		}
