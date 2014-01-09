@@ -523,6 +523,8 @@ function de_plugin_menu() {
 				$slug = De_Url::register_url( $webformPostId, sanitize_title( $title ) );
 				
 				update_post_meta( $webformPostId, 'de_webform_template', 'de_webform/' . $slug . '.php' );
+				update_post_meta( $webformPostId, 'de_admin_email_from', get_option( 'admin_email' ) );
+				update_post_meta( $webformPostId, 'de_user_email_from', get_option( 'admin_email' ) );
 				
 				if ( De_Language_Wrapper::has_multilanguage() ) {
 					De_Language_Wrapper::set_post_language( $webformPostId, De_Language_Wrapper::get_default_language() );
@@ -545,6 +547,8 @@ function de_plugin_menu() {
 
 						update_post_meta( $lang_post->ID, 'de_webform_template', 'de_webform/' . $slug . '.php' );
 						update_post_meta( $lang_post->ID, 'de_success_page', "/$lang/" );
+						update_post_meta( $lang_post->ID, 'de_admin_email_from', get_option( 'admin_email' ) );
+						update_post_meta( $lang_post->ID, 'de_user_email_from', get_option( 'admin_email' ) );
 					}
 				} else {
 					update_post_meta( $webformPostId, 'de_success_page', '/' );

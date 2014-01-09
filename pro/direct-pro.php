@@ -826,7 +826,6 @@ function de_nav_menu_filter( $items, $args ) {
 
 	// Set current menuitem
 	if ( empty( $current ) ) {
-		echo 'I am here';
 		foreach ( $items as $key => $item ) { 
 			// Current page
 			if( $item->type == 'post_type' && $direct_queried_object && ( $item->object_id == $direct_queried_object->ID || de_is_language_post( $item->object_id, $direct_queried_object->ID ) ) && ! $item->current ) {
