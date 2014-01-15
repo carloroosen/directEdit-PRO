@@ -595,6 +595,7 @@ function de_plugin_menu() {
 			update_option( 'de_tweak_backend', $_REQUEST[ 'tweak_backend' ] );
 			update_option( 'de_tweak_frontend', $_REQUEST[ 'tweak_frontend' ] );
 			update_option( 'de_disable_backend_editor', $_REQUEST[ 'disable_backend_editor' ] );
+			update_option( 'de_disable_validation', $_REQUEST[ 'disable_validation' ] );
 			update_option( 'de_smart_urls', $_REQUEST[ 'smart_urls' ] );
 			
 			// Handle login form
@@ -957,6 +958,9 @@ function de_plugin_page() {
 						</tr>
 						<tr>
 							<td><input type="hidden" name="disable_backend_editor" value="" /><label><input type="checkbox" name="disable_backend_editor" value="1"<?php echo ( get_option( 'de_disable_backend_editor' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'disable backend editing for editor', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr>
+							<td><input type="hidden" name="disable_validation" value="" /><label><input type="checkbox" name="disable_validation" value="1"<?php echo ( get_option( 'de_disable_validation' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'disable text validation', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr>
 							<td>
