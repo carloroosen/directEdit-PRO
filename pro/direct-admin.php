@@ -150,76 +150,88 @@ function de_plugin_menu() {
 					die();
 				}
 
-				// Copy theme files
-				// style.css
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/style.css' );
-				$template = str_replace( array( '{theme_name}' ), array( $_POST[ 'theme_name' ] ), $template );
-				$result = file_put_contents ( $target . '/style.css', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
+				if ( empty( $_POST[ 'theme_child' ] ) ) {
+					// Copy theme files
+					// style.css
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/style.css' );
+					$template = str_replace( array( '{theme_name}' ), array( $_POST[ 'theme_name' ] ), $template );
+					$result = file_put_contents ( $target . '/style.css', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/style.css', 0777 );
+					// functions.php
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/functions.php' );
+					$result = file_put_contents ( $target . '/functions.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/functions.php', 0777 );
+					// Header, footer, front-page.php, home.php ( for blog page ), index.php
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/header.php' );
+					$result = file_put_contents ( $target . '/header.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/header.php', 0777 );
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/footer.php' );
+					$template = str_replace( array( '{year}' ), array( date( 'Y' ) ), $template );
+					$result = file_put_contents ( $target . '/footer.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/footer.php', 0777 );
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/front-page.php' );
+					$result = file_put_contents ( $target . '/front-page.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/front-page.php', 0777 );
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/home.php' );
+					$result = file_put_contents ( $target . '/home.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/home.php', 0777 );
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/page.php' );
+					$result = file_put_contents ( $target . '/page.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/page.php', 0777 );
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/index.php' );
+					$result = file_put_contents ( $target . '/index.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/index.php', 0777 );
+					// 404.php
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/404.php' );
+					$result = file_put_contents ( $target . '/404.php', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/404.php', 0777 );
+				} else {
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/style-child.css' );
+					$template_current = wp_get_theme();
+					$template = str_replace( array( '{theme_name}', '{template_name}', '{template_uri}' ), array( $_POST[ 'theme_name' ], $template_current->get( 'Name' ), get_template_directory_uri() ), $template );
+					$result = file_put_contents ( $target . '/style.css', $template );
+					if ( $result === false ) {
+						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						die();
+					}
+					chmod( $target . '/style.css', 0777 );
 				}
-				chmod( $target . '/style.css', 0777 );
-				// functions.php
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/functions.php' );
-				$result = file_put_contents ( $target . '/functions.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/functions.php', 0777 );
-				// Header, footer, front-page.php, home.php ( for blog page ), index.php
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/header.php' );
-				$result = file_put_contents ( $target . '/header.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/header.php', 0777 );
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/footer.php' );
-				$template = str_replace( array( '{year}' ), array( date( 'Y' ) ), $template );
-				$result = file_put_contents ( $target . '/footer.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/footer.php', 0777 );
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/front-page.php' );
-				$result = file_put_contents ( $target . '/front-page.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/front-page.php', 0777 );
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/home.php' );
-				$result = file_put_contents ( $target . '/home.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/home.php', 0777 );
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/page.php' );
-				$result = file_put_contents ( $target . '/page.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/page.php', 0777 );
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/index.php' );
-				$result = file_put_contents ( $target . '/index.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/index.php', 0777 );
-				// 404.php
-				$template = file_get_contents( DIRECT_PATH . 'pro/template/404.php' );
-				$result = file_put_contents ( $target . '/404.php', $template );
-				if ( $result === false ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				chmod( $target . '/404.php', 0777 );
 				
 				// Create auxiliary dirs and copy login form template
 				umask( 0 );
@@ -777,6 +789,9 @@ function de_plugin_page() {
 						<tr>
 							<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
 							<td><input type="text" name="theme_name" id="theme_name" style="width: 240px;" /> <input type="submit" value="create" /></td>
+						</tr>
+						<tr>
+							<td colspan="2"><input type="checkbox" name="theme_child" id="theme_child" /> <?php _e( 'create a child theme for current theme', 'direct-edit' ); ?></td>
 						</tr>
 					</tbody>
 				</table>

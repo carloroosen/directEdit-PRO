@@ -930,13 +930,17 @@ function de_nav_menu_filter( $items, $args ) {
 function de_page_options() {
 	global $de_global_options;
 	global $direct_queried_object;
-	
+
 	if ( ! is_admin() && ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
-		if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
+		if ( is_object( $direct_queried_object ) ) {
 		?>
 <div class="direct-editable" id="direct-page-options" data-global-options="page-options" style="display: none;">
 	<form>
+		<?php if ( ! empty( $direct_queried_object->ID ) ) { ?>
 		<input type="hidden" name="postId" id="postId" value="<?php echo $direct_queried_object->ID; ?>" />
+		<?php } else { ?>
+		<input type="hidden" name="postType" id="postType" value="<?php echo $direct_queried_object->post_type; ?>" />
+		<?php } ?>
 		<input type="hidden" name="templateName" id="templateName" value="<?php echo de_get_current_template(); ?>" />
 		<div style="float:left; width:46%; padding:5px 2%;">
 			<h5><?php _e( 'Title', 'direct-edit' ); ?></h5>
