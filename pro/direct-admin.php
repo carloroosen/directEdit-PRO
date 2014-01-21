@@ -583,9 +583,42 @@ function de_plugin_menu() {
 			}
 
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+		} elseif ( isset( $_REQUEST['action'] ) && 'create_webform_template' == $_REQUEST['action'] ) {
+			$webform = get_post( ( int ) $_REQUEST[ 'webform_id' ] );
+
+			if ( ! empty( $webform ) && $webform->post_type == 'de_webform' && is_dir( DIRECT_PATH . 'pro/de_webform/custom/' . $_REQUEST[ 'template_name' ] ) ) {
+				$target = get_stylesheet_directory();
+				if ( ! file_exists( $target . '/de_webform/custom' ) ) {
+					umask( 0 );
+					mkdir( $target . '/de_webform/custom', 0777 );
+				}
+				if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name ) ) {
+					de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
+				}
+				$result = de_copy( DIRECT_PATH . 'pro/de_webform/custom/' . $_REQUEST[ 'template_name' ], $target . '/de_webform/custom/' . $webform->post_name );
+				if ( ! $result ) {
+					@de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
+					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_webform_template' ) );
+					die();
+				}
+				
+				// Setup hook
+				if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name . '/functions.php' ) ) {
+					include $target . '/de_webform/custom/' . $webform->post_name . '/functions.php';
+					do_action( 'de_custom_' . $_REQUEST[ 'template_name' ] . '_setup', $webform->post_name );
+				}
+			}
+
+			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'delete_webform' == $_REQUEST['action'] ) {
 			$webformPostId = ( int ) $_REQUEST[ 'post' ];
+			$webform = get_post( $webformPostId );
 			
+			$target = get_stylesheet_directory();
+			if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name ) ) {
+				de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
+			}
+
 			if ( $webformPostId ) {
 				if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $webformPostId ) ) {
 					foreach( De_Language_Wrapper::get_language_posts( $webformPostId ) as $lang_post ) {
@@ -915,23 +948,74 @@ function de_plugin_page() {
 		<?php if ( post_type_exists( 'de_webform' ) ) { ?>
 		<h3><?php _e( 'custom webforms', 'direct-edit' );?></h3>
 		<div class="inside">
-			<form method="post">
-				<input type="hidden" name="action" value="create_webform" />
-				<table border="0">
-					<tbody>
-						<tr>
-							<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
-							<td><input type="text" name="custom_webform_name" id="custom_webform_name" style="width: 240px;" /> <input type="submit" value="create" /></td>
-						</tr>
-						<?php foreach ( $webforms as $webform ) { ?>
-						<tr>
-							<td></td>
-							<td><a href="?page=direct-edit&action=delete_webform&post=<?php echo $webform->ID; ?>"><?php _e( 'delete', 'direct-edit' ); ?></a> <?php echo $webform->post_title; ?></td>
-						</tr>
-						<?php } ?>
-					</tbody>
-				</table>
-			</form>
+			<table border="0">
+				<tbody>
+					<tr>
+						<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
+						<td><form method="post"><input type="hidden" name="action" value="create_webform" /><input type="text" name="custom_webform_name" id="custom_webform_name" style="width: 240px;" /> <input type="submit" value="create" /></form></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<table border="0">
+								<tbody>
+									<?php foreach ( $webforms as $webform ) { ?>
+									<tr>
+										<td><?php echo $webform->post_title; ?></td>
+										<td>
+											<?php
+											if ( is_dir( DIRECT_PATH . 'pro/de_webform/custom' ) ) {
+												$source = DIRECT_PATH . 'pro/de_webform/custom';
+												$d = dir( $source );
+												
+												$c = 0;
+												while ( FALSE !== ( $entry = $d->read() ) ) {
+													if ( $entry == '.' || $entry == '..' )
+														continue;
+
+													if ( is_dir( "$source/$entry" ) ) {
+														$c ++;
+													}
+												}
+												
+												if ( $c ) {
+													$d->rewind();
+													?>
+													<form method="post">
+														<input type="hidden" name="action" value="create_webform_template" />
+														<input type="hidden" name="webform_id" value="<?php echo $webform->ID; ?>" />
+														<select name="template_name">
+															<?php
+																while ( FALSE !== ( $entry = $d->read() ) ) {
+																	if ( $entry == '.' || $entry == '..' )
+																		continue;
+
+																	if ( is_dir( "$source/$entry" ) ) {
+																		?>
+																		<option value="<?php echo $entry; ?>"><?php echo $entry; ?></option>
+																		<?php
+																	}
+																}
+															?>
+														</select>
+														<input type="submit" value="create" />
+													</form>
+													<?php
+												}
+											}
+											?>
+										</td>
+										<td>
+											<input type="button" onclick="location.href='?page=direct-edit&action=delete_webform&post=<?php echo $webform->ID; ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
+										</td>
+									</tr>
+									<?php } ?>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<?php } ?>
 		<h3><i><?php _e( 'hooks on standard wp-functions', 'direct-edit' );?></i></h3>

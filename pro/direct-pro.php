@@ -490,16 +490,28 @@ function de_custom_template( $template ) {
 		$options = array();
 
 	if ( $direct_queried_object ) {
-		foreach( $options as $option ) {
-			if ( $direct_queried_object->post_type == 'de_' . sanitize_title( $option->name ) ) {
-				// dE post type
-				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php' ) ) {
-					$template = get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php';
+		if ( $direct_queried_object->post_type == 'de_webform' ) {
+			if ( is_dir( get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name ) && file_exists( get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name . '/single-de_webform.php' ) ) {
+				$template = get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name . '/single-de_webform.php';
+				
+				if ( file_exists( dirname( $template ) . '/functions.php' ) ) {
+					include dirname( $template ) . '/functions.php';
 				}
-			} elseif ( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ) == $direct_queried_object->ID || de_is_language_post( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ), $direct_queried_object->ID ) ) {
-				// dE page for dE post type
-				if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php' ) ) {
-					$template = get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php';
+			}
+		} else {
+			foreach( $options as $option ) {
+				if ( $direct_queried_object->post_type == 'de_' . sanitize_title( $option->name ) ) {
+					// dE post type
+					if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php' ) ) {
+						$template = get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/single.php';
+						break;
+					}
+				} elseif ( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ) == $direct_queried_object->ID || de_is_language_post( get_option( 'de_page_for_de_' . sanitize_title( $option->name ) ), $direct_queried_object->ID ) ) {
+					// dE page for dE post type
+					if ( is_dir( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) ) && file_exists( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php' ) ) {
+						$template = get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) . '/archive.php';
+						break;
+					}
 				}
 			}
 		}
