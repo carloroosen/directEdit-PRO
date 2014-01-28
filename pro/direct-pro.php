@@ -490,7 +490,15 @@ function de_custom_template( $template ) {
 		$options = array();
 
 	if ( $direct_queried_object ) {
-		if ( $direct_queried_object->post_type == 'de_webform' ) {
+		if ( de_is_front_page( $direct_queried_object->ID ) ) {
+			if ( is_dir( get_stylesheet_directory() . '/custom/front-page' ) && file_exists( get_stylesheet_directory() . '/custom/front-page/front-page.php' ) ) {
+				$template = get_stylesheet_directory() . '/custom/front-page/front-page.php';
+				
+				if ( file_exists( dirname( $template ) . '/functions.php' ) ) {
+					include dirname( $template ) . '/functions.php';
+				}
+			}
+		} elseif ( $direct_queried_object->post_type == 'de_webform' ) {
 			if ( is_dir( get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name ) && file_exists( get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name . '/single-de_webform.php' ) ) {
 				$template = get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name . '/single-de_webform.php';
 				

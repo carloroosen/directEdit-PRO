@@ -369,6 +369,31 @@ function de_plugin_menu() {
 			update_option( 'show_on_front', 'page' );
 			
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+		} elseif ( isset( $_REQUEST['action'] ) && 'create_front_page_template' == $_REQUEST['action'] ) {
+			if( is_dir( DIRECT_PATH . 'pro/custom/front-page/' . $_REQUEST[ 'template_name' ] ) ) {
+				$target = get_stylesheet_directory();
+				if ( ! file_exists( $target . '/custom/front-page' ) ) {
+					umask( 0 );
+					mkdir( $target . '/custom/front-page', 0777 );
+				}
+				if ( file_exists( $target . '/custom/front-page' ) ) {
+					de_rmdir( $target . '/custom/front-page' );
+				}
+				$result = de_copy( DIRECT_PATH . 'pro/custom/front-page/' . $_REQUEST[ 'template_name' ], $target . '/custom/front-page' );
+				if ( ! $result ) {
+					@de_rmdir( $target . '/custom/front-page' );
+					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_front_page_template' ) );
+					die();
+				}
+				
+				// Setup hook
+				if ( file_exists( $target . '/custom/front-page/functions.php' ) ) {
+					include $target . '/custom/front-page/functions.php';
+					do_action( 'de_custom_front_page_' . $_REQUEST[ 'template_name' ] . '_setup' );
+				}
+			}
+
+			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create' == $_REQUEST['action'] ) {
 			$option = new stdClass();
 			$option->name = $wpdb->escape( $_POST[ 'custom_page_type' ] );
@@ -605,7 +630,7 @@ function de_plugin_menu() {
 				// Setup hook
 				if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name . '/functions.php' ) ) {
 					include $target . '/de_webform/custom/' . $webform->post_name . '/functions.php';
-					do_action( 'de_custom_' . $_REQUEST[ 'template_name' ] . '_setup', $webform->post_name );
+					do_action( 'de_webform_custom_' . $_REQUEST[ 'template_name' ] . '_setup', $webform->post_name );
 				}
 			}
 
@@ -798,7 +823,7 @@ function de_plugin_page() {
 			<br>
 		</div>
 		<h2>Direct Edit <?php _e( 'Options', 'direct-edit' ); ?></h2>
-		<h3><i><?php _e( 'automatic updates', 'direct-edit' );?></i></h3>
+		<h3><i><?php _e( 'automatic updates', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="automatic_updates" />
@@ -812,8 +837,8 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
-		<h3><i><?php _e( 'setup wizard', 'direct-edit' );?></i></h3>
-		<h3><?php _e( 'create theme', 'direct-edit' );?></h3>
+		<h3><i><?php _e( 'setup wizard', 'direct-edit' ); ?></i></h3>
+		<h3><?php _e( 'create theme', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="create_theme" />
@@ -831,7 +856,7 @@ function de_plugin_page() {
 			</form>
 		</div>
 		<?php if ( ! file_exists( get_stylesheet_directory() . '/direct-edit' ) ) { ?>
-		<h3><?php _e( 'copy files to current theme', 'direct-edit' );?></h3>
+		<h3><?php _e( 'copy files to current theme', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="copy_files" />
@@ -845,7 +870,7 @@ function de_plugin_page() {
 			</form>
 		</div>
 		<?php } else { ?>
-		<h3><?php _e( 'remove /direct-edit folder from theme', 'direct-edit' );?></h3>
+		<h3><?php _e( 'remove /direct-edit folder from theme', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="remove_files" />
@@ -859,8 +884,10 @@ function de_plugin_page() {
 			</form>
 		</div>
 		<?php } ?>
-		<?php if ( get_option( 'show_on_front' ) != 'page' ) { ?>
-		<h3><?php _e( 'create home and blog pages', 'direct-edit' );?></h3>
+		<?php
+		if ( get_option( 'show_on_front' ) != 'page' ) {
+		?>
+		<h3><?php _e( 'create home and blog pages', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="create_pages" />
@@ -873,8 +900,60 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
-		<?php } ?>
-		<h3><?php _e( 'custom page types', 'direct-edit' );?></h3>
+		<?php
+		} else {
+			if ( is_dir( DIRECT_PATH . 'pro/custom/front-page' ) ) {
+				$source = DIRECT_PATH . 'pro/custom/front-page';
+				$d = dir( $source );
+				
+				$c = 0;
+				while ( FALSE !== ( $entry = $d->read() ) ) {
+					if ( $entry == '.' || $entry == '..' )
+						continue;
+
+					if ( is_dir( "$source/$entry" ) ) {
+						$c ++;
+					}
+				}
+				
+				if ( $c ) {
+				?>
+				<h3><?php _e( 'custom home page templates', 'direct-edit' ); ?></h3>
+				<div class="inside">
+					<table border="0">
+						<tbody>
+							<tr>
+								<td>
+									<?php $d->rewind(); ?>
+									<form method="post">
+										<input type="hidden" name="action" value="create_front_page_template" />
+										<select name="template_name">
+											<?php
+												while ( FALSE !== ( $entry = $d->read() ) ) {
+													if ( $entry == '.' || $entry == '..' )
+														continue;
+
+													if ( is_dir( "$source/$entry" ) ) {
+														?>
+														<option value="<?php echo $entry; ?>"><?php echo $entry; ?></option>
+														<?php
+													}
+												}
+											?>
+										</select>
+										<input type="submit" value="create" />
+									</form>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<?php
+				}
+			}
+		}
+		?>
+		<h3><?php _e( 'custom page types', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<table border="0">
 				<tbody>
@@ -898,7 +977,7 @@ function de_plugin_page() {
 												
 												$c = 0;
 												while ( FALSE !== ( $entry = $d->read() ) ) {
-													if ( $entry == '.' || $entry == '..' )
+													if ( $entry == '.' || $entry == '..' || $entry == 'front-page' )
 														continue;
 
 													if ( is_dir( "$source/$entry" ) ) {
@@ -915,7 +994,7 @@ function de_plugin_page() {
 														<select name="template_name">
 															<?php
 																while ( FALSE !== ( $entry = $d->read() ) ) {
-																	if ( $entry == '.' || $entry == '..' )
+																	if ( $entry == '.' || $entry == '..' || $entry == 'front-page' )
 																		continue;
 
 																	if ( is_dir( "$source/$entry" ) ) {
@@ -946,7 +1025,7 @@ function de_plugin_page() {
 			</table>
 		</div>
 		<?php if ( post_type_exists( 'de_webform' ) ) { ?>
-		<h3><?php _e( 'custom webforms', 'direct-edit' );?></h3>
+		<h3><?php _e( 'custom webforms', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<table border="0">
 				<tbody>
@@ -1018,7 +1097,7 @@ function de_plugin_page() {
 			</table>
 		</div>
 		<?php } ?>
-		<h3><i><?php _e( 'hooks on standard wp-functions', 'direct-edit' );?></i></h3>
+		<h3><i><?php _e( 'hooks on standard wp-functions', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="wp_hooks" />
@@ -1040,7 +1119,7 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
-		<h3><i><?php _e( 'options', 'direct-edit' );?></i></h3>
+		<h3><i><?php _e( 'options', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
 				<input type="hidden" name="action" value="de_options" />

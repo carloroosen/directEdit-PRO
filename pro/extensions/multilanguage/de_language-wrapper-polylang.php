@@ -94,7 +94,7 @@ class De_Language_Wrapper {
 						'post_content' => '',
 						'post_title' => 'New ' . $post_type->labels->singular_name,
 						'post_status' => 'publish',
-						'post_date' => date('Y-m-d H:i:s'),
+						'post_date' => current_time( 'mysql' ),
 						'post_author' => $user_ID,
 						'post_type' => $post->post_type,
 						'post_category' => array( 0 ),

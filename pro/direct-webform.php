@@ -1,5 +1,6 @@
 <?php
 // Global form variables
+global $de_webform_id;
 global $de_webform_errors;
 global $de_webform_messages;
 global $de_webform_values;
@@ -252,8 +253,7 @@ function de_webform_setup( $post ) {
 		 * If a user is logged in, he is redirected to the page with his settings
 		 */
 		if ( $user_ID ) {
-			wp_redirect( home_url() );
-			exit;  
+			de_webform_conditional_redirect( home_url() );
 		}
 		
 		/*
@@ -471,4 +471,29 @@ function de_webform_process( $template ) {
 	}
 	
 	return $template;
+}
+
+// Redirect helper
+function de_webform_conditional_redirect( $location, $form_id = '' ) {
+	global $de_webform_id;
+	
+	if ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) {
+		$de_webform_id = $form_id;
+		add_action( 'wp_print_footer_scripts', 'de_webform_disable', 10 );
+	} else {
+		wp_redirect( $location );
+		exit;
+	}
+}
+
+function de_webform_disable() {
+	global $de_webform_id;
+	
+	?>
+<script>
+	jQuery(document).ready(function() {
+		jQuery('form<?php echo ( $de_webform_id ? '#' . $de_webform_id : '' ); ?>').submit(function() {return false});
+	});
+</script>
+	<?php
 }
