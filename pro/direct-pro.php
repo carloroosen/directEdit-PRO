@@ -796,7 +796,7 @@ function de_remove_edit_post_link( $link ) {
 }
 
 function de_set_locale( $locale ) {
-	if ( ! is_admin() && De_Language_Wrapper::has_multilanguage() ) {
+	if ( ! is_admin() && ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && De_Language_Wrapper::has_multilanguage() ) {
 		return De_Language_Wrapper::get_current_locale();
 	} else {
 		return $locale;
