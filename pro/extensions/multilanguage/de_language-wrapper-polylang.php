@@ -48,6 +48,12 @@ class De_Language_Wrapper {
 		return pll_current_language();
 	}
 	
+	public static function get_current_locale() {
+		global $polylang;
+		
+		return pll_current_language( 'locale' );
+	}
+
 	public static function set_post_language( $post_id, $lang ) {
 		global $polylang;
 		

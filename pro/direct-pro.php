@@ -470,6 +470,7 @@ function de_extensions_include() {
 	// Include multilanguage extensions
 	if ( is_plugin_active( 'polylang/polylang.php' ) ) {
 		de_pro_include( DIRECT_PATH . 'pro/extensions/multilanguage/de_language-wrapper-polylang.php', DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php' );
+		add_filter( 'locale', 'de_set_locale' );
 	} else {
 		require_once DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php';
 	}
@@ -791,6 +792,14 @@ function de_remove_edit_post_link( $link ) {
 		return '';
 	} else {
 		return $link;
+	}
+}
+
+function de_set_locale( $locale ) {
+	if ( ! is_admin() && De_Language_Wrapper::has_multilanguage() ) {
+		return De_Language_Wrapper::get_current_locale();
+	} else {
+		return $locale;
 	}
 }
 

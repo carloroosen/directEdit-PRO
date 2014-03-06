@@ -17,8 +17,16 @@ class De_Item_Date extends De_Item {
 		} else {
 			$container = 'time';
 		}
-		if ( $this->get_setting( 'format' ) ) {
-			$format = $this->get_setting( 'format' );
+		
+		$locale = get_locale();
+		if ( empty( $locale ) ) {
+			$locale = 'en_US';
+		}
+		$localize = $this->get_setting( 'localize' );
+		if ( $localize && ! empty( $localize[ $locale ] ) ) {
+			$format = de_datepicker_to_php( $localize[ $locale ] );
+		} elseif ( $this->get_setting( 'format' ) ) {
+			$format = de_datepicker_to_php( $this->get_setting( 'format' ) );
 		} else {
 			$format = get_option( 'date_format' );
 		}
