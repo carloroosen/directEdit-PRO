@@ -104,7 +104,7 @@ class De_Language_Wrapper {
 						'post_author' => $user_ID,
 						'post_type' => $post->post_type,
 						'post_category' => array( 0 ),
-						'post_status' = 'draft'
+						'post_status' => 'draft'
 					);
 					$lang_post_id = wp_insert_post( $lang_post, true );
 
