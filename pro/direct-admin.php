@@ -224,7 +224,7 @@ function de_plugin_menu() {
 				} else {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/style-child.css' );
 					$template_current = wp_get_theme();
-					$template = str_replace( array( '{theme_name}', '{template_name}', '{template_uri}' ), array( $_POST[ 'theme_name' ], $template_current->get( 'Name' ), get_template_directory_uri() ), $template );
+					$template = str_replace( array( '{theme_name}', '{template_name}', '{template_uri}' ), array( $_POST[ 'theme_name' ], $template_current->get( 'Template ' ), get_template_directory_uri() ), $template );
 					$result = file_put_contents ( $target . '/style.css', $template );
 					if ( $result === false ) {
 						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
