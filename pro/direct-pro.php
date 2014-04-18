@@ -6,43 +6,76 @@ $de_update_checker = new PluginUpdateChecker(
 	DIRECT_PATH . 'direct-edit.php'
 );
 
-function de_add_updates_key( $query ){
+function de_pro_add_updates_key( $query ){
 	$query[ 'key' ] = get_option( 'automatic_updates_key' );
 	$query[ 'url' ] = urlencode( get_option( 'siteurl' ) );
 
 	return $query;
 }
-$de_update_checker->addQueryArgFilter( 'de_add_updates_key' );
+$de_update_checker->addQueryArgFilter( 'de_pro_add_updates_key' );
 
 // General setup
-add_action( 'admin_bar_menu', 'de_tweak_menu', 90 );
-add_action( 'after_setup_theme', 'de_remove_admin_bar' );
-add_action( 'after_switch_theme', 'de_copy_de_files' );
-add_action( 'before_delete_post', 'de_disable_pages_removal' );
-add_action( 'init', 'de_create_post_types', 0 );
-add_action( 'init', 'de_capabilities' );
-add_action( 'login_init', 'de_login_redirect' );
-add_action( 'plugins_loaded', 'de_extensions_include' );
-add_action( 'pre_get_posts', 'de_filter_posts' );
-add_action( 'template_include', 'de_custom_template' );
-add_action( 'template_redirect', 'de_404_override' );
-add_action( 'template_redirect', 'de_nonactive_languages_redirect' );
-add_action( 'template_redirect', 'de_perform_actions', 5 );
-add_action( 'wp', 'de_add_filter_permalink' );
-add_action( 'wp', 'de_handle_url', 0 );
-add_action( 'wp_print_footer_scripts', 'de_page_options', 20 );
+add_action( 'admin_bar_menu', 'de_pro_tweak_menu', 90 );
+add_action( 'after_setup_theme', 'de_pro_remove_admin_bar' );
+add_action( 'after_switch_theme', 'de_pro_copy_de_files' );
+add_action( 'before_delete_post', 'de_pro_disable_pages_removal' );
+add_action( 'init', 'de_pro_create_post_types', 0 );
+add_action( 'init', 'de_pro_capabilities' );
+add_action( 'login_init', 'de_pro_login_redirect' );
+add_action( 'plugins_loaded', 'de_pro_extensions_include' );
+add_action( 'pre_get_posts', 'de_pro_filter_posts' );
+add_action( 'template_include', 'de_pro_custom_template' );
+add_action( 'template_redirect', 'de_pro_404_override' );
+add_action( 'template_redirect', 'de_pro_nonactive_languages_redirect' );
+add_action( 'template_redirect', 'de_pro_perform_actions', 5 );
+add_action( 'wp', 'de_pro_add_filter_permalink' );
+add_action( 'wp', 'de_pro_handle_url', 0 );
+add_action( 'wp_print_footer_scripts', 'de_pro_footer_scripts', 20 );
 
-add_filter( 'edit_post_link', 'de_remove_edit_post_link' );
-add_filter( 'logout_url', 'de_logout_home', 10, 2 );
-add_filter( 'wp_nav_menu_objects', 'de_nav_menu_filter', 10, 2 );
+add_filter( 'edit_post_link', 'de_pro_remove_edit_post_link' );
+add_filter( 'logout_url', 'de_pro_logout_home', 10, 2 );
+add_filter( 'wp_nav_menu_objects', 'de_pro_nav_menu_filter', 10, 2 );
 
-function de_tweak_menu( $wp_admin_bar ) {
+function de_pro_tweak_menu( $wp_admin_bar ) {
 	global $current_user;
 	global $direct_queried_object;
 
 	remove_action( 'admin_bar_menu', 'de_adjust_menu', 100 );
 
-	if ( get_option( 'de_tweak_backend' ) && is_admin() || get_option( 'de_tweak_frontend' ) && ! is_admin() ) {
+	if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) == $direct_queried_object->ID ) {
+		$wp_admin_bar->remove_menu( 'site-name' );
+		$wp_admin_bar->remove_menu( 'view-site' );
+		$wp_admin_bar->remove_menu( 'dashboard' );
+		$wp_admin_bar->remove_menu( 'menus' );
+		$wp_admin_bar->remove_menu( 'user-info' );
+		$wp_admin_bar->remove_menu( 'edit-profile' );
+		$wp_admin_bar->remove_menu( 'customize' );
+		$wp_admin_bar->remove_menu( 'updates' );
+		$wp_admin_bar->remove_menu( 'wp-logo' );
+		$wp_admin_bar->remove_menu( 'themes' );
+		$wp_admin_bar->remove_menu( 'comments' );
+		$wp_admin_bar->remove_menu( 'new-content' );
+		$wp_admin_bar->remove_menu( 'edit' );
+		
+		$wp_admin_bar->add_node( array(
+				'id' => 'menu-back',
+				'title' => __( 'Back to website', 'direct-edit' ),
+				'parent' => '',
+				'href' => home_url(),
+				'group' => '',
+				'meta' => array( 'title' => __( 'Back to website', 'direct-edit' ) )
+			)
+		);
+		$wp_admin_bar->add_node( array(
+				'id' => 'menu-save',
+				'title' => __( 'Save', 'direct-edit' ),
+				'parent' => '',
+				'href' => '#',
+				'group' => '',
+				'meta' => array( 'title' => __( 'Save', 'direct-edit' ) )
+			)
+		);
+	} elseif ( get_option( 'de_tweak_backend' ) && is_admin() || get_option( 'de_tweak_frontend' ) && ! is_admin() ) {
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
 			// Remove some unwanted menuitems
@@ -344,7 +377,7 @@ function de_tweak_menu( $wp_admin_bar ) {
 	}
 }
 
-function de_remove_admin_bar() {
+function de_pro_remove_admin_bar() {
 	if ( get_option( 'tweak_frontend' ) ) {
 		if ( ! ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 			show_admin_bar( false );
@@ -352,7 +385,7 @@ function de_remove_admin_bar() {
 	}
 }
 
-function de_copy_de_files() {
+function de_pro_copy_de_files() {
 	if ( get_option( 'de_options_custom_page_types' ) )
 		$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
 	else
@@ -387,7 +420,7 @@ function de_copy_de_files() {
 	}
 }
 
-function de_disable_pages_removal( $post_id ) {
+function de_pro_disable_pages_removal( $post_id ) {
 	if ( ! de_is_deleteable( $post_id ) ) {
 		if ( is_admin() ) {
 			wp_redirect( home_url( '/wp-admin/edit.php?post_type=page' ) );
@@ -398,7 +431,7 @@ function de_disable_pages_removal( $post_id ) {
 	}
 }
 
-function de_create_post_types() {
+function de_pro_create_post_types() {
 	register_post_type( 'de_list_item',
 		array(
 			'labels' => array(
@@ -431,7 +464,7 @@ function de_create_post_types() {
 	}
 }
 
-function de_capabilities() {
+function de_pro_capabilities() {
 	$admin = get_role( 'administrator' );
 	if ( is_object( $admin ) && ! user_can( $admin->ID, 'edit_de_frontend' ) ) {
 		$admin->add_cap( 'edit_de_frontend', true );
@@ -447,7 +480,7 @@ function de_capabilities() {
 	}
 }
 
-function de_login_redirect() {
+function de_pro_login_redirect() {
 	if ( get_option( 'de_wp_login_redirect' ) ) {
 		$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
 		$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?loggedout=true';
@@ -464,25 +497,25 @@ function de_login_redirect() {
 	}
 }
 
-function de_extensions_include() {
+function de_pro_extensions_include() {
 	remove_action( 'plugins_loaded', 'de_extensions_default', 100 );
 	
 	// Include multilanguage extensions
 	if ( is_plugin_active( 'polylang/polylang.php' ) ) {
 		de_pro_include( DIRECT_PATH . 'pro/extensions/multilanguage/de_language-wrapper-polylang.php', DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php' );
-		add_filter( 'locale', 'de_set_locale' );
+		add_filter( 'locale', 'de_pro_set_locale' );
 	} else {
 		require_once DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php';
 	}
 }
 
-function de_filter_posts( $query ) {
+function de_pro_filter_posts( $query ) {
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && ! empty( $_SESSION[ 'de_show_all' ] ) && ! is_admin() ) {
 		$query->query_vars[ 'post_status' ] = 'any';
 	}
 }
 
-function de_custom_template( $template ) {
+function de_pro_custom_template( $template ) {
 	global $direct_queried_object;
 
 	if ( get_option( 'de_options_custom_page_types' ) )
@@ -537,7 +570,7 @@ function de_custom_template( $template ) {
 	return $template;
 }
 
-function de_404_override() {
+function de_pro_404_override() {
 	global $wp_query;
 	global $post_type;
 	global $post;
@@ -563,7 +596,7 @@ function de_404_override() {
 	}
 }
 
-function de_nonactive_languages_redirect(){
+function de_pro_nonactive_languages_redirect(){
 	global $direct_queried_object;
 
 	if ( De_Language_Wrapper::has_multilanguage() ) {
@@ -602,12 +635,18 @@ function de_nonactive_languages_redirect(){
 	}
 }
 
-function de_perform_actions() {
+function de_pro_perform_actions() {
 	global $wp_query;
 	global $post_type;
 	global $post;
 	global $wp;
 	global $direct_queried_object;
+	
+	// Check Edit menu page permissions
+	if ( get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) == $direct_queried_object->ID && ! ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) {
+		wp_redirect( home_url() );
+		die();
+	}
 	
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 		if( isset( $_GET[ 'de_show_all' ] ) ) {
@@ -688,7 +727,7 @@ function de_perform_actions() {
 	}
 }
 
-function de_add_filter_permalink() {
+function de_pro_add_filter_permalink() {
 	if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
 		add_filter( 'page_link', 'de_filter_permalink', 10, 2 );
 		add_filter( 'post_link', 'de_filter_permalink', 10, 2 );
@@ -696,7 +735,7 @@ function de_add_filter_permalink() {
 	}
 }
 
-function de_handle_url() {
+function de_pro_handle_url() {
 	global $wp;
 	global $post_type;
 	global $post;
@@ -785,7 +824,7 @@ function de_handle_url() {
 	}
 }
 
-function de_remove_edit_post_link( $link ) {
+function de_pro_remove_edit_post_link( $link ) {
 	global $current_user;
 	
 	if ( in_array( 'editor', $current_user->roles ) && get_option( 'de_disable_backend_editor' ) ) {
@@ -795,7 +834,7 @@ function de_remove_edit_post_link( $link ) {
 	}
 }
 
-function de_set_locale( $locale ) {
+function de_pro_set_locale( $locale ) {
 	if ( ! is_admin() && ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && De_Language_Wrapper::has_multilanguage() ) {
 		return De_Language_Wrapper::get_current_locale();
 	} else {
@@ -803,12 +842,12 @@ function de_set_locale( $locale ) {
 	}
 }
 
-function de_logout_home( $logouturl, $redir ) {
+function de_pro_logout_home( $logouturl, $redir ) {
 	$redir = home_url();
 	return add_query_arg( 'redirect_to', urlencode( $redir ), $logouturl );
 }
 
-function de_nav_menu_filter( $items, $args ) {
+function de_pro_nav_menu_filter( $items, $args ) {
 	global $direct_queried_object;
 	global $post_type;
 
@@ -956,13 +995,26 @@ function de_nav_menu_filter( $items, $args ) {
 	return $out;
 }
 
-function de_page_options() {
+function de_pro_footer_scripts() {
 	global $de_global_options;
 	global $direct_queried_object;
 
-	if ( ! is_admin() && ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
-		if ( is_object( $direct_queried_object ) ) {
-		?>
+	if ( ! is_admin() ) {
+		if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
+			// Direct Menu Editor
+			if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) == $direct_queried_object->ID ) {
+				?>
+<script>
+	jQuery(document).ready(function() {
+		directEditMenu(<?php echo json_encode( De_Store::read_menus() ); ?>);
+		jQuery('li#wp-admin-bar-menu-save a').directMenuSaveButton();
+	});
+</script>
+				<?php
+			}
+			
+			if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
+					?>
 <div class="direct-editable" id="direct-page-options" data-global-options="page-options" style="display: none;">
 	<form>
 		<?php if ( ! empty( $direct_queried_object->ID ) ) { ?>
@@ -1003,28 +1055,23 @@ function de_page_options() {
 		<div style="clear: both;"></div>
 	</form>
 </div>
-		<?php
-		}
-		?>
 <script>
 	jQuery(document).ready(function() {
-		<?php if ( ! is_admin() && ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) { ?>
-			<?php if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) { //Page options are not available for category/taxonomy archives etc. Only for pages/posts ?>
-			jQuery('li#wp-admin-bar-page-options a').directOptionButton();
-			<?php
-			if ( get_post_meta( $direct_queried_object->ID, 'de_new_page', true ) ) {
-				?>
-				if ( confirm( '<?php _e( 'Do you want to show this page?' ); ?>' ) ) {
-					location.href = '<?php echo add_query_arg( array( 'de_show' => 1 ), De_Url::get_url( $direct_queried_object->ID ) ); ?>';
-				}
-				<?php
-				delete_post_meta( $direct_queried_object->ID, 'de_new_page' );
-			}
+		jQuery('li#wp-admin-bar-page-options a').directOptionButton();
+		<?php
+		if ( get_post_meta( $direct_queried_object->ID, 'de_new_page', true ) ) {
 			?>
-			<?php } ?>
-		<?php } ?>
+			if ( confirm( '<?php _e( 'Do you want to show this page?' ); ?>' ) ) {
+				location.href = '<?php echo add_query_arg( array( 'de_show' => 1 ), De_Url::get_url( $direct_queried_object->ID ) ); ?>';
+			}
+			<?php
+			delete_post_meta( $direct_queried_object->ID, 'de_new_page' );
+		}
+		?>
 	});
 </script>
-		<?php
+				<?php
+			}
+		}
 	}
 }

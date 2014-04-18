@@ -763,6 +763,83 @@ function de_plugin_menu() {
 			}
 			
 			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
+			update_option( 'de_menu_editor_enabled', $_REQUEST[ 'menu_editor_enabled' ] );
+			if ( get_option( 'de_menu_editor_enabled' ) ) {
+				foreach ( $_POST as $key => $value ) {
+					if ( $key == 'action' || $key == 'menu_editor_enabled' ) {
+						continue;
+					}
+					
+					update_option( 'de_' . $key, $value );
+				}
+				
+				// Create Edit Menu page
+				if ( ( ! get_option( 'de_edit_menu_page' ) || ! get_post( get_option( 'de_edit_menu_page' ) ) ) ) {
+					$editMenuPage = array(
+						'post_title' => __( 'Edit Menu', 'direct-edit' ),
+						'post_content' => '',
+						'post_status' => 'publish',
+						'post_date' => date('Y-m-d H:i:s'),
+						'post_author' => $user_ID,
+						'post_type' => 'page',
+						'post_category' => array( 0 )
+					);
+
+					$editMenuPageId = wp_insert_post( $editMenuPage );
+					De_Url::register_url( $editMenuPageId, 'edit-menu' );
+					
+					update_post_meta( $editMenuPageId, '_wp_page_template', 'edit-menu.php' );
+					
+					if ( De_Language_Wrapper::has_multilanguage() ) {
+						De_Language_Wrapper::set_post_language( $editMenuPageId, De_Language_Wrapper::get_default_language() );
+						De_Language_Wrapper::create_language_posts( $editMenuPageId );
+						
+						foreach( De_Language_Wrapper::get_language_posts( $editMenuPageId ) as $lang => $lang_post ) {
+							if ( $lang_post->ID == $editMenuPageId )
+								continue;
+							
+							$data = array(
+								'ID' => $lang_post->ID,
+								'post_title' => __( 'Edit Menu', 'direct-edit' ),
+								'post_name' => sanitize_title( __( 'edit menu', 'direct-edit' ) )
+							);
+							wp_update_post( $data );
+
+							De_Url::register_url( $lang_post->ID, sanitize_title( __( 'edit menu', 'direct-edit' ) ) );
+
+							update_post_meta( $lang_post->ID, '_wp_page_template', 'edit-menu.php' );
+						}
+					}
+					
+					update_option( 'de_edit_menu_page', $editMenuPageId );
+					
+					// Check menu edit page template
+					$target = get_stylesheet_directory();
+
+					if ( ! file_exists( $target . 'edit-menu.php' ) ) {
+						$template = file_get_contents( DIRECT_PATH . 'pro/template/edit-menu.php' );
+						file_put_contents ( $target . '/edit-menu.php', $template );
+						chmod( $target . '/edit-menu.php', 0777 );
+					}
+				}
+			} else {
+				$editMenuPageId = get_option( 'de_edit_menu_page' );
+				
+				if ( $editMenuPageId ) {
+					if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $editMenuPageId ) ) {
+						foreach( De_Language_Wrapper::get_language_posts( $editMenuPageId ) as $lang_post ) {
+							wp_delete_post( $lang_post->ID, true );
+						}
+					} else {
+						wp_delete_post( $editMenuPageId, true );
+					}
+					
+					delete_option( 'de_edit_menu_page' );
+				}
+			}
+
+			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'languages' == $_REQUEST['action'] ) {
 			if ( De_Language_Wrapper::has_multilanguage() ) {
 				update_option( 'de_options_show_languages', serialize( $_POST[ 'show_languages' ] ) );
@@ -1149,6 +1226,42 @@ function de_plugin_page() {
 								<?php } ?>
 							</td>
 						</tr>
+						<tr>
+							<td><input type="submit" value="save" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+		</div>
+		<h3><?php _e( 'DirectEdit menu editor', 'direct-edit' ); ?></h3>
+		<div class="inside">
+			<form method="post">
+				<input type="hidden" name="action" value="de_menu_editor" />
+				<table border="0">
+					<tbody>
+						<tr>
+							<td><input type="hidden" name="menu_editor_enabled" value="" /><label><input type="checkbox" name="menu_editor_enabled" value="1"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? ' checked="checked"' : '' ); ?> onchange="if (jQuery(this).attr('checked')) { jQuery('.menu_editor_enabled').show(); } else { jQuery('.menu_editor_enabled').hide(); }" /> <?php _e( 'use DirectEdit menu editor', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><h3><i><?php _e( 'which menu items can be added', 'direct-edit' ); ?></i></h3></td>
+						</tr>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_pages" value="" /><label><input type="checkbox" name="menu_editor_pages" value="1"<?php echo ( get_option( 'de_menu_editor_pages' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'pages', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_de_archive_pages" value="" /><label><input type="checkbox" name="menu_editor_de_archive_pages" value="1"<?php echo ( get_option( 'de_menu_editor_de_archive_pages' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'DirectEdit archive pages', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_webforms" value="" /><label><input type="checkbox" name="menu_editor_webforms" value="1"<?php echo ( get_option( 'de_menu_editor_webforms' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'webforms', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_category" value="" /><label><input type="checkbox" name="menu_editor_category" value="1"<?php echo ( get_option( 'de_menu_editor_category' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'category', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php foreach( get_taxonomies( array( '_builtin' => false ) ) as $value ) { ?>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_<?php echo $value; ?>" value="" /><label><input type="checkbox" name="menu_editor_<?php echo $value; ?>" value="1"<?php echo ( get_option( 'de_menu_editor_' . $value ) ? ' checked="checked"' : '' ); ?> /> <?php _e( $value, 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
 						<tr>
 							<td><input type="submit" value="save" /></td>
 						</tr>

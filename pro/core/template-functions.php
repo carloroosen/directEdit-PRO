@@ -90,18 +90,16 @@ function direct_copyright( $year, $echo = true ) {
 	echo $footer;
 }
 
-function direct_menu( $params ) {
-	global $direct_walker;
+function direct_menu( $params, $settings = array() ) {
+	$result = '';
 	
-	// Use our walker is menu exists only
-	$menu = wp_get_nav_menu_object( $params[ 'menu' ] );
-	if ( ! $menu && $params[ 'theme_location' ] && ( $locations = get_nav_menu_locations() ) && isset( $locations[ $params[ 'theme_location' ] ] ) )
-		$menu = wp_get_nav_menu_object( $locations[ $params[ 'theme_location' ] ] );
-	if ( $menu && ! is_wp_error( $menu ) ) {
-		$params[ 'walker' ] = $direct_walker;
+	try {
+		$item = new De_Item_Menu( $params, $settings );
+
+		$result = $item->output();
+	} catch ( Exception $e ) {
 	}
-	
-	$result = wp_nav_menu( $params );
+
 	return $result;
 }
 
