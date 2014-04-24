@@ -378,7 +378,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 }
 
 function de_pro_remove_admin_bar() {
-	if ( get_option( 'tweak_frontend' ) ) {
+	if ( get_option( 'de_tweak_frontend' ) ) {
 		if ( ! ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 			show_admin_bar( false );
 		}

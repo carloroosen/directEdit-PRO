@@ -21,6 +21,10 @@ class De_Walker_Nav_Menu extends Walker_Nav_Menu {
 		if ( $item->type == 'post_type' && ! empty( $item->object_id ) && de_is_hidden( $item->object_id ) ) {
 			$classes[] = 'direct-hidden';
 		}
+		// Add 'direct-show-all' class if 'Show all' option is checked
+		if ( ! empty( $_SESSION[ 'de_show_all' ] ) ) {
+			$classes[] = 'direct-show-all';
+		}
 
 		if ( empty( $args->item_hide_classes ) ) {
 			$class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
