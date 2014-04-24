@@ -926,7 +926,7 @@ function de_pro_nav_menu_filter( $items, $args ) {
 			}
 			
 			// Taxonomy page
-			if ( $item->type == 'taxonomy' && $direct_queried_object && has_term( $item->object_id, $item->object, $direct_queried_object->ID ) ) {
+			if ( $item->type == 'taxonomy' && ( is_single() && $direct_queried_object && has_term( $item->object_id, $item->object, $direct_queried_object->ID ) ) ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
 				
