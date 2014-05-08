@@ -474,7 +474,7 @@ function de_pro_capabilities() {
 	if ( is_object( $editor ) && ! user_can( $editor->ID, 'edit_de_frontend' ) ) {
 		$editor->add_cap( 'edit_de_frontend', true );
 	}
-	if ( get_option( 'de_tweak_backend' ) || get_option( 'de_tweak_frontend' ) ) {
+	if ( ( get_option( 'de_tweak_backend' ) || get_option( 'de_tweak_frontend' ) ) && ! get_option( 'de_menu_editor_enabled' ) ) {
 		$editor->add_cap( 'edit_themes' );
 		$editor->add_cap( 'edit_theme_options' );
 	}

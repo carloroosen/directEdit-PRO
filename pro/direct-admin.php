@@ -644,7 +644,7 @@ function de_plugin_menu() {
 				de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
 			}
 
-			if ( $webformPostId ) {
+			if ( $webformPostId && $webform && $webform->post_type == 'de_webform' ) {
 				if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $webformPostId ) ) {
 					foreach( De_Language_Wrapper::get_language_posts( $webformPostId ) as $lang_post ) {
 						wp_delete_post( $lang_post->ID, true );
@@ -671,7 +671,7 @@ function de_plugin_menu() {
 			// Handle login form
 			if( $_REQUEST['wp_login_redirect'] ) {
 				// Create log in form
-				if ( post_type_exists( 'de_webform' ) && ( ! get_option( 'de_login_form' ) || ! get_post( get_option( 'de_login_form' ) ) ) ) {
+				if ( post_type_exists( 'de_webform' ) && ( ! get_option( 'de_login_form' ) || ! get_post( get_option( 'de_login_form' ) ) || get_post_type( get_option( 'de_login_form' ) ) != 'de_webform' ) ) {
 					$args = array(
 						'meta_query' => array(
 							array(
@@ -749,7 +749,7 @@ function de_plugin_menu() {
 			} else {
 				$loginPostId = get_option( 'de_login_form' );
 				
-				if ( $loginPostId ) {
+				if ( $loginPostId && get_post( $loginPostId ) && get_post_type( $loginPostId ) == 'de_webform' ) {
 					if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $loginPostId ) ) {
 						foreach( De_Language_Wrapper::get_language_posts( $loginPostId ) as $lang_post ) {
 							wp_delete_post( $lang_post->ID, true );
@@ -1246,20 +1246,29 @@ function de_plugin_page() {
 							<td><h3><i><?php _e( 'which menu items can be added', 'direct-edit' ); ?></i></h3></td>
 						</tr>
 						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
-							<td><input type="hidden" name="menu_editor_pages" value="" /><label><input type="checkbox" name="menu_editor_pages" value="1"<?php echo ( get_option( 'de_menu_editor_pages' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'pages', 'direct-edit' ); ?></label></td>
+							<td><input type="hidden" name="menu_editor_pages" value="" /><label><input type="checkbox" name="menu_editor_pages" value="1"<?php echo ( get_option( 'de_menu_editor_pages' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Pages', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
 							<td><input type="hidden" name="menu_editor_de_archive_pages" value="" /><label><input type="checkbox" name="menu_editor_de_archive_pages" value="1"<?php echo ( get_option( 'de_menu_editor_de_archive_pages' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'DirectEdit archive pages', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
-							<td><input type="hidden" name="menu_editor_webforms" value="" /><label><input type="checkbox" name="menu_editor_webforms" value="1"<?php echo ( get_option( 'de_menu_editor_webforms' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'webforms', 'direct-edit' ); ?></label></td>
+							<td><input type="hidden" name="menu_editor_de_webforms" value="" /><label><input type="checkbox" name="menu_editor_de_webforms" value="1"<?php echo ( get_option( 'de_menu_editor_de_webforms' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Webforms', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
-							<td><input type="hidden" name="menu_editor_category" value="" /><label><input type="checkbox" name="menu_editor_category" value="1"<?php echo ( get_option( 'de_menu_editor_category' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'category', 'direct-edit' ); ?></label></td>
+							<td><input type="hidden" name="menu_editor_categories" value="" /><label><input type="checkbox" name="menu_editor_categories" value="1"<?php echo ( get_option( 'de_menu_editor_categories' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Categories', 'direct-edit' ); ?></label></td>
 						</tr>
-						<?php foreach( get_taxonomies( array( '_builtin' => false ) ) as $value ) { ?>
+						<?php foreach( get_taxonomies( array( '_builtin' => false ), 'object' ) as $value ) { ?>
 						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
-							<td><input type="hidden" name="menu_editor_<?php echo $value; ?>" value="" /><label><input type="checkbox" name="menu_editor_<?php echo $value; ?>" value="1"<?php echo ( get_option( 'de_menu_editor_' . $value ) ? ' checked="checked"' : '' ); ?> /> <?php _e( $value, 'direct-edit' ); ?></label></td>
+							<td><input type="hidden" name="menu_editor_taxonomies_<?php echo $value->name; ?>" value="" /><label><input type="checkbox" name="menu_editor_taxonomies_<?php echo $value->name; ?>" value="1"<?php echo ( get_option( 'de_menu_editor_taxonomies_' . $value->name ) ? ' checked="checked"' : '' ); ?> /> <?php _e( $value->label, 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_posts" value="" /><label><input type="checkbox" name="menu_editor_posts" value="1"<?php echo ( get_option( 'de_menu_editor_posts' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Posts', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php foreach( get_post_types( array( '_builtin' => false ), 'object' ) as $value ) { ?>
+						<?php if ( $value->name == 'de_list_item' || $value->name == 'de_webform' ) { continue; } ?>
+						<tr class="menu_editor_enabled"<?php echo ( get_option( 'de_menu_editor_enabled' ) ? '' : ' style="display: none;"' ); ?>>
+							<td><input type="hidden" name="menu_editor_posts_<?php echo $value->name; ?>" value="" /><label><input type="checkbox" name="menu_editor_posts_<?php echo $value->name; ?>" value="1"<?php echo ( get_option( 'de_menu_editor_posts_' . $value->name ) ? ' checked="checked"' : '' ); ?> /> <?php _e( $value->label, 'direct-edit' ); ?></label></td>
 						</tr>
 						<?php } ?>
 						<tr>
