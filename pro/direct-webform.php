@@ -392,6 +392,33 @@ function de_webform_process( $template ) {
 		do_action( $post->post_type . '_form_setup', $post );
 		
 		if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
+			// Check uploads
+			$uploads_to_delete = array();
+			if ( ! empty( $_FILES ) && is_array( $_FILES ) ) {
+				include_once( ABSPATH . 'wp-admin/includes/file.php' );
+				
+				foreach ( $_FILES as $key => $file ) {
+					if ( ! empty( $file[ 'error' ] ) ) {
+						$de_webform_errors[ $key ] = __( 'File uploading error.', 'direct-edit' );
+					} else {
+						$result = wp_handle_upload( $file, array( 'test_form' => FALSE ) );
+						
+						if ( isset( $result[ 'file' ] ) ) {
+							$uploads_to_delete[] = $result[ 'file' ];
+							
+							if ( $adminEmailAttachUploads ) {
+								$de_webform_admin_attachments[] = $result[ 'file' ];
+							}
+							if ( $userEmailAttachUploads ) {
+								$de_webform_user_attachments[] = $result[ 'file' ];
+							}
+						} else {
+							$de_webform_errors[ $key ] = __( 'File uploading error.', 'direct-edit' );
+						}
+					}
+				}
+			}
+
 			do_action( $post->post_type . '_form_validate', $post );
 
 			if ( empty( $de_webform_errors ) ) {
@@ -400,19 +427,6 @@ function de_webform_process( $template ) {
 					$de_webform_replace[] = $wpdb->escape( $value );
 				}
 				
-				// Save uploaded files if they exist
-				if( ! empty( $_FILES ) && is_array( $_FILES ) ) {
-					include_once( ABSPATH . 'wp-admin/includes/file.php' );
-					
-					foreach ( $_FILES as $file ) {
-						$result = wp_handle_upload( $file, array( 'test_form' => FALSE ) );
-						if ( $adminEmailAttachUploads )
-							$de_webform_admin_attachments[] = $result[ 'file' ];
-						if ( $userEmailAttachUploads )
-							$de_webform_user_attachments[] = $result[ 'file' ];
-					}
-				}
-
 				do_action( $post->post_type . '_form_action', $post );
 				
 				if ( empty( $de_webform_errors ) ) {
@@ -466,6 +480,11 @@ function de_webform_process( $template ) {
 						$de_webform_messages[] = str_replace( $de_webform_search, $de_webform_replace, $de_webform_success_message );
 					}
 				}
+			}
+			
+			// Delete files after sending them
+			foreach ( $uploads_to_delete as $upload_to_delete ) {
+				@unlink( $upload_to_delete );
 			}
 		}
 	}
