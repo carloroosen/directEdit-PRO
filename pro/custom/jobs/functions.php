@@ -160,7 +160,6 @@ function de_custom_jobs_save_page_options() {
 }
 
 function de_custom_jobs_form_setup( $post ) {
-	global $post;
 	global $de_webform_values;
 
 	if ( ! empty( $_REQUEST[ 'item' ] ) && get_post( ( int ) $_REQUEST[ 'item' ] ) ) {
@@ -183,7 +182,6 @@ function de_custom_jobs_form_setup( $post ) {
 }
 
 function de_custom_jobs_form_validate( $post ) {
-	global $post;
 	global $wpdb;
 	global $de_webform_errors;
 	global $de_webform_values;

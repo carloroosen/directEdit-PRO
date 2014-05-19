@@ -241,7 +241,6 @@ function de_webform_create_post_types() {
 }
 
 function de_webform_setup( $post ) {
-	global $wpdb;
 	global $user_ID;
 	global $de_webform_values;
 	global $de_webform_search;
@@ -354,7 +353,6 @@ function de_webform_set_template( $template ) {
 
 function de_webform_process( $template ) {
 	global $post;
-	global $wpdb;
 	global $de_webform_errors;
 	global $de_webform_messages;
 	global $de_webform_search;
@@ -398,7 +396,9 @@ function de_webform_process( $template ) {
 				include_once( ABSPATH . 'wp-admin/includes/file.php' );
 				
 				foreach ( $_FILES as $key => $file ) {
-					if ( ! empty( $file[ 'error' ] ) ) {
+					if ( $file[ 'error' ] == UPLOAD_ERR_NO_FILE ) {
+						continue;
+					}elseif ( ! empty( $file[ 'error' ] ) ) {
 						$de_webform_errors[ $key ] = __( 'File uploading error.', 'direct-edit' );
 					} else {
 						$result = wp_handle_upload( $file, array( 'test_form' => FALSE ) );
@@ -424,7 +424,7 @@ function de_webform_process( $template ) {
 			if ( empty( $de_webform_errors ) ) {
 				foreach( $_POST as $key => $value) {
 					$de_webform_search[] = '{' . $key . '}';
-					$de_webform_replace[] = $wpdb->escape( $value );
+					$de_webform_replace[] = trim( $value );
 				}
 				
 				do_action( $post->post_type . '_form_action', $post );
