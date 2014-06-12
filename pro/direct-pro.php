@@ -22,7 +22,7 @@ add_action( 'before_delete_post', 'de_pro_disable_pages_removal' );
 add_action( 'init', 'de_pro_create_post_types', 0 );
 add_action( 'init', 'de_pro_capabilities' );
 add_action( 'login_init', 'de_pro_login_redirect' );
-add_action( 'plugins_loaded', 'de_pro_extensions_include' );
+add_action( 'init', 'de_pro_extensions_include', 5 );
 add_action( 'pre_get_posts', 'de_pro_filter_posts' );
 add_action( 'template_include', 'de_pro_custom_template' );
 add_action( 'template_redirect', 'de_pro_404_override' );
@@ -498,7 +498,7 @@ function de_pro_login_redirect() {
 }
 
 function de_pro_extensions_include() {
-	remove_action( 'plugins_loaded', 'de_extensions_default', 100 );
+	remove_action( 'init', 'de_extensions_default', 10 );
 	
 	// Include multilanguage extensions
 	if ( is_plugin_active( 'polylang/polylang.php' ) ) {
