@@ -28,9 +28,12 @@ class De_Walker_Nav_Menu extends Walker_Nav_Menu {
 
 		if ( empty( $args->item_hide_classes ) ) {
 			$class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
-			$class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
 		}
-
+		if ( ! empty( $args->item_class_current ) && array_intersect( array( 'current-menu-item', 'current-menu-ancestor' ), $classes ) ) {
+			$class_names = join( ' ', array_filter( array( $class_names, $args->item_class_current ) ) );
+		}
+		$class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
+		
 		$id = '';
 		
 		if ( empty( $args->item_hide_id ) ) {

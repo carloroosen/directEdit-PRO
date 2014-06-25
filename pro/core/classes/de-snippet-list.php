@@ -80,9 +80,18 @@ class De_Snippet_List extends De_Snippet {
 
 		$direct_list_item = $this->next_item();
 	}
-	
+
+	public function rewind_items() {
+		global $direct_list_item;
+		
+		$this->current_item = -1;
+		$this->item = null;
+		
+		$direct_list_item = null;
+	}
+
 	public function next_item() {
-		$this->current_item++;
+		$this->current_item ++;
 
 		$this->item = $this->items[ $this->current_item ];
 		return $this->item;

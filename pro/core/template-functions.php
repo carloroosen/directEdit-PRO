@@ -52,6 +52,12 @@ function direct_list_the_item() {
 	$de_snippet_list->the_item();
 }
 
+function direct_list_rewind_items() {
+	global $de_snippet_list;
+	
+	$de_snippet_list->rewind_items();
+}
+
 // dE image functions
 function direct_image_copy( $copy, $store = null, $settings = array() ) {
 	global $de_snippet_image;
