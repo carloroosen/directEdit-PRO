@@ -87,7 +87,7 @@ function direct_image_copy( $copy, $store = null, $settings = array() ) {
 function direct_copyright( $year, $echo = true ) {
 	$y = ( int ) date( 'Y' );
 	$y_ = ( int ) $year;
-	$footer = ($y > $y_) ? $y_ . ' - ' . $y : $y_ ;
+	$footer = ($y_ && $y > $y_) ? $y_ . ' - ' . $y : $y ;
 	
 	if ( ! $echo ) {
 		return $footer;

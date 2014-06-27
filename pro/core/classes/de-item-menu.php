@@ -44,7 +44,7 @@ class De_Item_Menu extends De_Item {
 			}
 			
 			// Use direct_menu() params
-			$useful_params = array( 'depth', 'start_level' );
+			$useful_params = array( 'depth', 'startLevel' );
 			foreach( $params as $key => $value ) {
 				if ( in_array( $key, $useful_params ) ) {
 					$this->set_setting( $key, $value );

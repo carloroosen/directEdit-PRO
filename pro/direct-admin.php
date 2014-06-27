@@ -570,7 +570,7 @@ function de_plugin_menu() {
 					update_post_meta( $webformPostId, 'de_success_page', '/' . De_Language_Wrapper::get_default_language() . '/' );
 					
 					foreach( De_Language_Wrapper::get_language_posts( $webformPostId ) as $lang => $lang_post ) {
-						if ( $lang_post->ID == $loginPostId )
+						if ( $lang_post->ID == $webformPostId )
 							continue;
 						
 						$data = array(

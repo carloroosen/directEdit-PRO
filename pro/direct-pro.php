@@ -19,7 +19,7 @@ add_action( 'admin_bar_menu', 'de_pro_tweak_menu', 90 );
 add_action( 'after_setup_theme', 'de_pro_remove_admin_bar' );
 add_action( 'after_switch_theme', 'de_pro_copy_de_files' );
 add_action( 'before_delete_post', 'de_pro_disable_pages_removal' );
-add_action( 'init', 'de_pro_create_post_types', 0 );
+add_action( 'init', 'de_pro_create_post_types', 2 );
 add_action( 'init', 'de_pro_capabilities' );
 add_action( 'login_init', 'de_pro_login_redirect' );
 add_action( 'init', 'de_pro_extensions_include', 5 );
@@ -950,9 +950,9 @@ function de_pro_nav_menu_filter( $items, $args ) {
 		}
 	}
 
-	if ( empty( $args->start_level ) )
+	if ( empty( $args->startLevel ) )
 		return $items;
-	$startLevel = $args->start_level;
+	$startLevel = $args->startLevel;
 	
 	// Look for the proper ancestor
 	$i = 1;
