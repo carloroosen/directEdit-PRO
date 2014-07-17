@@ -83,10 +83,8 @@ function de_adjust_menus() {
 
 	if ( get_option( 'de_tweak_backend' ) ) {
 		$restricted = array( __( 'Links' ), __( 'Comments' ) );
-		if ( ! in_array( 'administrator', $current_user->roles ) )
-			$restricted[] = __( 'Media' );
-		if ( in_array( 'editor', $current_user->roles ) ) {
-			$restricted = array_merge( $restricted, array( __( 'Dashboard' ), __( 'Posts' ), __( 'Pages' ), __( 'List items' ), __( 'Plugins' ), __( 'Profile' ), __( 'Tools' ), __( 'Settings' ) ) );
+		if ( ! in_array( 'administrator', $current_user->roles ) ) {
+			$restricted = array( __( 'Media' ), __( 'Dashboard' ), __( 'Posts' ), __( 'Pages' ), __( 'List items' ), __( 'Plugins' ), __( 'Profile' ), __( 'Tools' ), __( 'Settings' ) );
 			foreach( get_post_types( array('show_ui' => true ), 'objects' ) as $postType ) {
 				if ( in_array( $postType->name, array( 'attachment', 'de_webform', 'de_list_item' ) ) )
 					continue;
@@ -103,7 +101,7 @@ function de_adjust_menus() {
 			}
 		}
 
-		if ( in_array( 'editor', $current_user->roles ) ) {
+		if ( ! in_array( 'administrator', $current_user->roles ) && ! empty( $submenu[ 'themes.php' ] ) ) {
 			$restrictedSub = array( __( 'Themes' ), __( 'Widgets' ) );
 			end ( $submenu[ 'themes.php' ] );
 			while ( prev( $submenu[ 'themes.php' ] ) ) {

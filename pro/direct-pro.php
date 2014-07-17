@@ -185,6 +185,9 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					if ( ! in_array( $postType->name, array( 'post', 'page' ) ) && ( in_array( $postType->name, array( 'de_list_item', 'de_webform' ) ) || strpos( $postType->name, 'de_' ) !== 0 ) )
 						continue;
 
+					if ( $postType->name == 'page' && ! current_user_can( 'edit_pages' ) )
+						continue;
+
 					$wp_admin_bar->add_node( array(
 							'id' => 'new-' . $postType->name,
 							'title' => __( $postType->labels->singular_name, 'direct-edit' ),
@@ -214,7 +217,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 										'id' => 'post-show',
 										'title' => __('Show'),
 										'parent' => '',
-										'href' => get_permalink( $direct_queried_object->ID ) . '?de_show=1',
+										'href' => add_query_arg( array( 'de_show' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 										'group' => '',
 										'meta' => array( 'title' => __('Show') )
 									)
@@ -224,7 +227,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 										'id' => 'post-hide',
 										'title' => __('Hide'),
 										'parent' => '',
-										'href' => get_permalink( $direct_queried_object->ID ) . '?de_hide=1',
+										'href' => add_query_arg( array( 'de_hide' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 										'group' => '',
 										'meta' => array( 'title' => __('Hide') )
 									)
@@ -238,7 +241,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 									'id' => 'post-delete',
 									'title' => __('Delete'),
 									'parent' => '',
-									'href' => get_permalink( $direct_queried_object->ID ) . '?de_delete=1',
+									'href' => add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 									'group' => '',
 									'meta' => array(
 										'title' => __('Delete'),
@@ -288,6 +291,9 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					if ( ! in_array( $postType->name, array( 'post', 'page' ) ) && ( in_array( $postType->name, array( 'de_list_item', 'de_webform' ) ) || strpos( $postType->name, 'de_' ) !== 0 ) )
 						continue;
 
+					if ( $postType->name == 'page' && ! current_user_can( 'edit_pages' ) )
+						continue;
+
 					$wp_admin_bar->add_node( array(
 							'id' => 'new-' . $postType->name,
 							'title' => __( $postType->labels->singular_name, 'direct-edit' ),
@@ -317,7 +323,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 										'id' => 'post-show',
 										'title' => __('Show'),
 										'parent' => '',
-										'href' => get_permalink( $direct_queried_object->ID ) . '?de_show=1',
+										'href' => add_query_arg( array( 'de_show' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 										'group' => '',
 										'meta' => array( 'title' => __('Show') )
 									)
@@ -327,7 +333,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 										'id' => 'post-hide',
 										'title' => __('Hide'),
 										'parent' => '',
-										'href' => get_permalink( $direct_queried_object->ID ) . '?de_hide=1',
+										'href' => add_query_arg( array( 'de_hide' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 										'group' => '',
 										'meta' => array( 'title' => __('Hide') )
 									)
@@ -341,7 +347,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 									'id' => 'post-delete',
 									'title' => __('Delete'),
 									'parent' => '',
-									'href' => get_permalink( $direct_queried_object->ID ) . '?de_delete=1',
+									'href' => add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 									'group' => '',
 									'meta' => array(
 										'title' => __('Delete'),
@@ -661,7 +667,7 @@ function de_pro_perform_actions() {
 				$p[ 'ID' ] = $direct_queried_object->ID;
 				$p[ 'post_status' ] = 'draft';
 				wp_update_post( $p );
-				wp_redirect( home_url( $wp->request ) );
+				wp_redirect( get_permalink( $direct_queried_object->ID ) );
 				die();
 			}
 			if( ! empty( $_GET[ 'de_show' ] ) ) {
@@ -669,7 +675,7 @@ function de_pro_perform_actions() {
 				$p[ 'ID' ] = $direct_queried_object->ID;
 				$p[ 'post_status' ] = 'publish';
 				wp_update_post( $p );
-				wp_redirect( home_url( $wp->request ) );
+				wp_redirect( get_permalink( $direct_queried_object->ID ) );
 				die();
 			}
 			if( ! empty( $_GET[ 'de_delete' ] ) ) {
