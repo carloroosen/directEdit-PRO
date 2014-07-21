@@ -1035,7 +1035,7 @@ function de_pro_footer_scripts() {
 			<h5><?php _e( 'Description', 'direct-edit' ); ?></h5>
 			<textarea name="de_description" id="de_description"><?php direct_bloginfo( 'description' ); ?></textarea>
 		</div>
-		<?php if ( De_Language_Wrapper::has_multilanguage() || ! is_front_page() ) { ?>
+		<?php if ( De_Language_Wrapper::has_multilanguage() || ! is_front_page() || $direct_queried_object->post_type == 'post' ) { ?>
 		<div style="float:left; width:46%; padding:5px 2%;">
 		<?php if( De_Language_Wrapper::has_multilanguage() ) { // It is needed for menu translation only ?>
 			<h5><?php _e( 'Navigation label', 'direct-edit' ); ?></h5>
@@ -1049,6 +1049,21 @@ function de_pro_footer_scripts() {
 				<input type="text" name="de_slug" id="de_slug" value="<?php direct_bloginfo( 'slug' ); ?>" />
 			<?php
 			}
+		}
+		if ( $direct_queried_object->post_type == 'post' ) {
+		?>
+			<h5><?php _e( 'Category', 'direct-edit' ); ?></h5>
+			<select name="de_category">
+			<?php
+			$categories = get_categories( array( 'orderby' => 'name', 'hide_empty' => 0 ) );
+			foreach( $categories as $category ) {
+			?>
+			<option value="<?php echo $category->term_id; ?>"<?php echo ( has_category( $category->term_id, $direct_queried_object->ID ) ? ' selected="selected"' : '' ) ?>><?php echo $category->name; ?></option>
+			<?php
+			}
+			?>
+			</select>
+		<?php
 		}
 		?>
 		</div>
