@@ -176,3 +176,9 @@ function direct_bloginfo( $show, $echo = true, $post_id = null ) {
 
 	echo $result;
 }
+
+function direct_post_id( $post_name ) {
+	global $wpdb;
+	$id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE post_name = '" . $post_name . "'" );
+	return $id;
+}
