@@ -1034,28 +1034,33 @@ function de_pro_footer_scripts() {
 			<input type="text" name="de_title" id="de_title" value="<?php direct_bloginfo( 'title' ); ?>" />
 			<h5><?php _e( 'Description', 'direct-edit' ); ?></h5>
 			<textarea name="de_description" id="de_description"><?php direct_bloginfo( 'description' ); ?></textarea>
-		</div>
-		<?php if ( De_Language_Wrapper::has_multilanguage() || ! is_front_page() || $direct_queried_object->post_type == 'post' ) { ?>
-		<div style="float:left; width:46%; padding:5px 2%;">
-		<?php if( De_Language_Wrapper::has_multilanguage() ) { // It is needed for menu translation only ?>
-			<h5><?php _e( 'Navigation label', 'direct-edit' ); ?></h5>
-			<input type="text" name="de_navigation_label" id="de_navigation_label" value="<?php direct_bloginfo( 'navigation_label' ); ?>" />
-		<?php
-		}
-		if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
-			if ( ! is_front_page() ) {
-			?>
-				<h5><?php _e( 'Slug', 'direct-edit' ); ?></h5>
-				<input type="text" name="de_slug" id="de_slug" value="<?php direct_bloginfo( 'slug' ); ?>" />
+			<?php if( De_Language_Wrapper::has_multilanguage() ) { // It is needed for menu translation only ?>
+				<h5><?php _e( 'Navigation label', 'direct-edit' ); ?></h5>
+				<input type="text" name="de_navigation_label" id="de_navigation_label" value="<?php direct_bloginfo( 'navigation_label' ); ?>" />
 			<?php
 			}
-		}
+			if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
+				if ( ! is_front_page() ) {
+				?>
+					<h5><?php _e( 'Slug', 'direct-edit' ); ?></h5>
+					<input type="text" name="de_slug" id="de_slug" value="<?php direct_bloginfo( 'slug' ); ?>" />
+				<?php
+				}
+			}
+			?>
+		</div>
+		<?php
 		if ( $direct_queried_object->post_type == 'post' ) {
-		?>
+			$categories = get_categories( array( 'orderby' => 'name', 'hide_empty' => 0 ) );
+			$category_input = array();
+			foreach( $categories as $category ) {
+				$category_input[] = array( 'id' => $category->term_id, 'name' => $category->name );
+			}
+			?>
+		<div style="float:left; width:46%; padding:5px 2%;">
 			<h5><?php _e( 'Category', 'direct-edit' ); ?></h5>
 			<select name="de_category">
 			<?php
-			$categories = get_categories( array( 'orderby' => 'name', 'hide_empty' => 0 ) );
 			foreach( $categories as $category ) {
 			?>
 			<option value="<?php echo $category->term_id; ?>"<?php echo ( has_category( $category->term_id, $direct_queried_object->ID ) ? ' selected="selected"' : '' ) ?>><?php echo $category->name; ?></option>
@@ -1063,12 +1068,15 @@ function de_pro_footer_scripts() {
 			}
 			?>
 			</select>
-		<?php
-		}
-		?>
+			<h5>Manage Categories</h5>
+			<div id="categoryEditor">
+				<input type="hidden" id="categoryInput" name="de_category_input" value="<?php echo esc_attr( json_encode( $category_input ) ); ?>">
+			</div>
 		</div>
 		<div style="clear: both;"></div>
-		<?php } ?>
+			<?php
+		}
+		?>
 		<?php do_action( 'de_add_page_options' ); ?>
 		<div style="float:right;">
 			<input class="btn" type="submit" value="<?php _e( 'Save', 'direct-edit' ); ?>" />
