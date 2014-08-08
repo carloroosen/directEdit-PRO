@@ -136,7 +136,7 @@ function de_plugin_menu() {
 		if ( isset( $_REQUEST['action'] ) && 'automatic_updates' == $_REQUEST['action'] ) {
 			update_option( 'automatic_updates_key', $_POST[ 'automatic_updates_key' ] );
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_theme' == $_REQUEST['action'] ) {
 			// Create theme dir
 			$target = get_theme_root() . '/' . sanitize_title( $_POST[ 'theme_name' ] );
@@ -144,7 +144,7 @@ function de_plugin_menu() {
 				umask( 0 );
 				$result = mkdir( $target, 0777 );
 				if ( ! $result ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 					die();
 				}
 
@@ -155,7 +155,7 @@ function de_plugin_menu() {
 					$template = str_replace( array( '{theme_name}' ), array( $_POST[ 'theme_name' ] ), $template );
 					$result = file_put_contents ( $target . '/style.css', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/style.css', 0777 );
@@ -163,7 +163,7 @@ function de_plugin_menu() {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/functions.php' );
 					$result = file_put_contents ( $target . '/functions.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/functions.php', 0777 );
@@ -171,7 +171,7 @@ function de_plugin_menu() {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/header.php' );
 					$result = file_put_contents ( $target . '/header.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/header.php', 0777 );
@@ -179,35 +179,35 @@ function de_plugin_menu() {
 					$template = str_replace( array( '{year}' ), array( date( 'Y' ) ), $template );
 					$result = file_put_contents ( $target . '/footer.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/footer.php', 0777 );
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/front-page.php' );
 					$result = file_put_contents ( $target . '/front-page.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/front-page.php', 0777 );
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/home.php' );
 					$result = file_put_contents ( $target . '/home.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/home.php', 0777 );
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/page.php' );
 					$result = file_put_contents ( $target . '/page.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/page.php', 0777 );
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/index.php' );
 					$result = file_put_contents ( $target . '/index.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/index.php', 0777 );
@@ -215,7 +215,7 @@ function de_plugin_menu() {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/404.php' );
 					$result = file_put_contents ( $target . '/404.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/404.php', 0777 );
@@ -225,7 +225,7 @@ function de_plugin_menu() {
 					$template = str_replace( array( '{theme_name}', '{template_name}', '{template_uri}' ), array( $_POST[ 'theme_name' ], $template_current->get( 'Template ' ), get_template_directory_uri() ), $template );
 					$result = file_put_contents ( $target . '/style.css', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/style.css', 0777 );
@@ -235,20 +235,20 @@ function de_plugin_menu() {
 				umask( 0 );
 				$result = mkdir( $target . '/de_webform', 0777 );
 				if ( ! $result ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 					die();
 				}
 				umask( 0 );
 				$result = mkdir( $target . '/snippets', 0777 );
 				if ( ! $result ) {
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 					die();
 				}
 				if ( get_option( 'de_wp_login_redirect' ) ) {
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/de_webform/log-in.php' );
 					$result = file_put_contents ( $target . '/de_webform/log-in.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/de_webform/log-in.php', 0777 );
@@ -260,14 +260,14 @@ function de_plugin_menu() {
 					$template = str_replace( array( '{name}' ), array( sanitize_title( $option->name ) ), $template );
 					$result = file_put_contents ( $target . '/archive-de_' . sanitize_title( $option->name ) . '.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/archive-de_' . sanitize_title( $option->name ) . '.php', 0777 );
 					$template = file_get_contents( DIRECT_PATH . 'pro/template/single-custom_post_type.php' );
 					$result = file_put_contents ( $target . '/single-de_' . sanitize_title( $option->name ) . '.php', $template );
 					if ( $result === false ) {
-						wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_theme' ) );
+						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
 						die();
 					}
 					chmod( $target . '/single-de_' . sanitize_title( $option->name ) . '.php', 0777 );
@@ -277,24 +277,24 @@ function de_plugin_menu() {
 				switch_theme( sanitize_title( $_POST[ 'theme_name' ] ) );
 			}
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'copy_files' == $_REQUEST['action'] ) {
 			if ( ! file_exists( get_stylesheet_directory() . '/direct-edit' ) ) {
 				$result = de_copy( DIRECT_PATH . 'theme', get_stylesheet_directory() . '/direct-edit' );
 				if ( ! $result ) {
 					@de_rmdir( get_stylesheet_directory() . '/direct-edit' );
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=copy_files' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=copy_files' ) );
 					die();
 				}
 			}
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'remove_files' == $_REQUEST['action'] ) {
 			if ( file_exists( get_stylesheet_directory() . '/direct-edit' ) ) {
 				de_rmdir( get_stylesheet_directory() . '/direct-edit' );
 			}
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_pages' == $_REQUEST['action'] ) {
 			// Create home page
 			$newPost = array(
@@ -366,7 +366,7 @@ function de_plugin_menu() {
 			
 			update_option( 'show_on_front', 'page' );
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_front_page_template' == $_REQUEST['action'] ) {
 			if( is_dir( DIRECT_PATH . 'pro/custom/front-page/' . $_REQUEST[ 'template_name' ] ) ) {
 				$target = get_stylesheet_directory();
@@ -380,7 +380,7 @@ function de_plugin_menu() {
 				$result = de_copy( DIRECT_PATH . 'pro/custom/front-page/' . $_REQUEST[ 'template_name' ], $target . '/custom/front-page' );
 				if ( ! $result ) {
 					@de_rmdir( $target . '/custom/front-page' );
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_front_page_template' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_front_page_template' ) );
 					die();
 				}
 				
@@ -391,7 +391,7 @@ function de_plugin_menu() {
 				}
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create' == $_REQUEST['action'] ) {
 			$option = new stdClass();
 			$option->name = $wpdb->escape( $_POST[ 'custom_page_type' ] );
@@ -467,7 +467,7 @@ function de_plugin_menu() {
 				update_option( 'de_options_custom_page_types', base64_encode( serialize( $options ) ) );
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_template' == $_REQUEST['action'] ) {
 			$option = $wpdb->escape( $_REQUEST[ 'custom_page_type' ] );
 
@@ -485,7 +485,7 @@ function de_plugin_menu() {
 				$result = de_copy( DIRECT_PATH . 'pro/custom/' . $_REQUEST[ 'template_name' ], $target . '/custom/' . sanitize_title( $option->name ) );
 				if ( ! $result ) {
 					@de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_template' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_template' ) );
 					die();
 				}
 				
@@ -496,7 +496,7 @@ function de_plugin_menu() {
 				}
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'delete' == $_REQUEST['action'] ) {
 			$option = $wpdb->escape( $_REQUEST[ 'custom_page_type' ] );
 
@@ -539,7 +539,7 @@ function de_plugin_menu() {
 				}
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_webform' == $_REQUEST['action'] ) {
 			if ( post_type_exists( 'de_webform' ) ) {
 				$title = $wpdb->escape( $_POST[ 'custom_webform_name' ] );
@@ -605,7 +605,7 @@ function de_plugin_menu() {
 				}
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_webform_template' == $_REQUEST['action'] ) {
 			$webform = get_post( ( int ) $_REQUEST[ 'webform_id' ] );
 
@@ -621,7 +621,7 @@ function de_plugin_menu() {
 				$result = de_copy( DIRECT_PATH . 'pro/de_webform/custom/' . $_REQUEST[ 'template_name' ], $target . '/de_webform/custom/' . $webform->post_name );
 				if ( ! $result ) {
 					@de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
-					wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&error=create_webform_template' ) );
+					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_webform_template' ) );
 					die();
 				}
 				
@@ -632,7 +632,7 @@ function de_plugin_menu() {
 				}
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'delete_webform' == $_REQUEST['action'] ) {
 			$webformPostId = ( int ) $_REQUEST[ 'post' ];
 			$webform = get_post( $webformPostId );
@@ -652,12 +652,12 @@ function de_plugin_menu() {
 				}
 			}
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'wp_hooks' == $_REQUEST['action'] ) {
 			$options = $wpdb->escape( $_REQUEST[ 'wp_hooks' ] );
 			update_option( 'de_options_wp_hooks', base64_encode( serialize( $options ) ) );
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_options' == $_REQUEST[ 'action' ] ) {
 			update_option( 'de_wp_login_redirect', $_REQUEST[ 'wp_login_redirect' ] );
 			update_option( 'de_tweak_backend', $_REQUEST[ 'tweak_backend' ] );
@@ -760,7 +760,7 @@ function de_plugin_menu() {
 				}
 			}
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
 			update_option( 'de_menu_editor_enabled', $_REQUEST[ 'menu_editor_enabled' ] );
 			if ( get_option( 'de_menu_editor_enabled' ) ) {
@@ -837,13 +837,13 @@ function de_plugin_menu() {
 				}
 			}
 
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'languages' == $_REQUEST['action'] ) {
 			if ( De_Language_Wrapper::has_multilanguage() ) {
 				update_option( 'de_options_show_languages', serialize( $_POST[ 'show_languages' ] ) );
 			}
 			
-			wp_redirect( home_url( '/wp-admin/plugins.php?page=direct-edit&saved=true' ) );
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		}
 	}
 	
@@ -1220,7 +1220,7 @@ function de_plugin_page() {
 								<input type="hidden" name="smart_urls" value="" /><label><input type="checkbox" name="smart_urls" value="1"<?php echo ( get_option( 'de_smart_urls' ) ? ' checked="checked"' : '' ); ?><?php echo ( get_option( 'permalink_structure' ) != '/%postname%/' ? ' disabled="disabled"' : '' ); ?> /> <?php _e( 'use DirectEdit smart url\'s', 'direct-edit' ); ?></label>
 								<?php if ( get_option( 'permalink_structure' ) != '/%postname%/' ) { ?>
 								<br />
-								Set <a href="<?php echo home_url( '/wp-admin/options-permalink.php'); ?>"><i>Permalink Settings</i></a> to <i>Post name</i> to use this option
+								Set <a href="<?php echo admin_url( '/options-permalink.php' ); ?>"><i>Permalink Settings</i></a> to <i>Post name</i> to use this option
 								<?php } ?>
 							</td>
 						</tr>

@@ -87,7 +87,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							'id' => 'site-name',
 							'title' => __( 'Website', 'direct-edit' ),
 							'parent' => '',
-							'href' => get_site_url(),
+							'href' => home_url(),
 							'group' => '',
 							'meta' => array()
 						)
@@ -97,7 +97,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							'id' => 'site-name',
 							'title' => __( 'Backend', 'direct-edit' ),
 							'parent' => '',
-							'href' => get_site_url() . '/wp-admin/',
+							'href' => admin_url(),
 							'group' => '',
 							'meta' => array()
 						)
@@ -111,7 +111,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							'id' => 'site-name',
 							'title' => __( 'Website', 'direct-edit' ),
 							'parent' => '',
-							'href' => get_site_url(),
+							'href' => home_url(),
 							'group' => '',
 							'meta' => array()
 						)
@@ -125,7 +125,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'id' => 'menus',
 						'title' => __( 'Menus', 'direct-edit' ),
 						'parent' => '',
-						'href' => get_site_url() . '/wp-admin/nav-menus.php',
+						'href' => admin_url( '/nav-menus.php' ),
 						'group' => '',
 						'meta' => array()
 					)
@@ -192,7 +192,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							'id' => 'new-' . $postType->name,
 							'title' => __( $postType->labels->singular_name, 'direct-edit' ),
 							'parent' => 'new-content',
-							'href' => add_query_arg( array( 'de_add' => $postType->name ), get_site_url() ),
+							'href' => add_query_arg( array( 'de_add' => $postType->name ), home_url() ),
 							'group' => '',
 							'meta' => array()
 						)
@@ -298,7 +298,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							'id' => 'new-' . $postType->name,
 							'title' => __( $postType->labels->singular_name, 'direct-edit' ),
 							'parent' => 'new-content',
-							'href' => add_query_arg( array( 'de_add' => $postType->name ), get_site_url() ),
+							'href' => add_query_arg( array( 'de_add' => $postType->name ), home_url() ),
 							'group' => '',
 							'meta' => array()
 						)
