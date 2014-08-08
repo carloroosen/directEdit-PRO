@@ -1068,10 +1068,12 @@ function de_pro_footer_scripts() {
 			}
 			?>
 			</select>
+			<?php if ( current_user_can( 'manage_categories' ) ) { ?>
 			<h5>Manage Categories</h5>
 			<div id="categoryEditor">
 				<input type="hidden" id="categoryInput" name="de_category_input" value="<?php echo esc_attr( json_encode( $category_input ) ); ?>">
 			</div>
+			<?php } ?>
 		</div>
 		<div style="clear: both;"></div>
 			<?php
