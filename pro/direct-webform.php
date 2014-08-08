@@ -16,8 +16,8 @@ global $de_webform_user_attachments;
 $de_webform_user_attachments = array();
 
 add_action( 'add_meta_boxes', 'de_webform_add_template_metabox' );
-add_action( 'init', 'de_webform_capabilities' );
-add_action( 'init', 'de_webform_create_post_types', 0 );
+add_action( 'init', 'de_webform_capabilities', 20 );
+add_action( 'init', 'de_webform_create_post_types' );
 add_action( 'de_webform_form_setup', 'de_webform_setup' );
 add_action( 'de_webform_form_validate', 'de_webform_validate' );
 add_action( 'de_webform_form_action', 'de_webform_action' );
