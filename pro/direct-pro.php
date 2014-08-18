@@ -1,18 +1,20 @@
 <?php
 // Automatic Updates
-require_once DIRECT_PATH . 'pro/plugin-updates/plugin-update-checker.php';
-$de_update_checker = new PluginUpdateChecker(
-	'http://directedit.co/downloads/info.json',
-	DIRECT_PATH . 'direct-edit.php'
-);
+if ( DIRECT_MODE == 'PLUGIN' ) {
+	require_once DIRECT_PATH . 'pro/plugin-updates/plugin-update-checker.php';
+	$de_update_checker = new PluginUpdateChecker(
+		'http://directedit.co/downloads/info.json',
+		DIRECT_PATH . 'direct-edit.php'
+	);
 
-function de_pro_add_updates_key( $query ){
-	$query[ 'key' ] = get_option( 'automatic_updates_key' );
-	$query[ 'url' ] = urlencode( get_option( 'siteurl' ) );
+	function de_pro_add_updates_key( $query ){
+		$query[ 'key' ] = get_option( 'automatic_updates_key' );
+		$query[ 'url' ] = urlencode( get_option( 'siteurl' ) );
 
-	return $query;
+		return $query;
+	}
+	$de_update_checker->addQueryArgFilter( 'de_pro_add_updates_key' );
 }
-$de_update_checker->addQueryArgFilter( 'de_pro_add_updates_key' );
 
 // General setup
 add_action( 'admin_bar_menu', 'de_pro_tweak_menu', 90 );
@@ -274,6 +276,18 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 				);
 			}
 		}
+		
+		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) != $direct_queried_object->ID ) {
+			$wp_admin_bar->add_node( array(
+					'id' => 'menu-edit',
+					'title' => __( 'Edit menu', 'direct-edit' ),
+					'parent' => '',
+					'href' => get_permalink( get_option( 'de_edit_menu_page' ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'Edit menu', 'direct-edit' ) )
+				)
+			);
+		}
 	} elseif ( ! is_admin() || get_option( 'de_tweak_backend' ) && is_admin() ) {
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
@@ -379,6 +393,18 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					)
 				);
 			}
+		}
+
+		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) != $direct_queried_object->ID ) {
+			$wp_admin_bar->add_node( array(
+					'id' => 'menu-edit',
+					'title' => __( 'Edit menu', 'direct-edit' ),
+					'parent' => '',
+					'href' => get_permalink( get_option( 'de_edit_menu_page' ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'Edit menu', 'direct-edit' ) )
+				)
+			);
 		}
 	}
 }
