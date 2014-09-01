@@ -21,10 +21,12 @@ if ( ! empty( $de_webform_messages ) ) {
 		<form method="post">
 			<p>
 			<label for="email"><em>&nbsp;</em><?php _e( 'Email', 'direct-edit' ); ?></label>
+			<br />
 			<input id="email" name="email" type="email" class="required email" value="<?php echo esc_attr( $de_webform_values[ 'email' ] ); ?>" />
 			</p>
 			<p>
 			<label for="password"><em>&nbsp;</em><?php _e( 'Password', 'direct-edit' ); ?></label>
+			<br />
 			<input id="password" name="password" type="password" class="required" />
 			</p>
 			<p>
