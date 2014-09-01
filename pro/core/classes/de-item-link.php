@@ -37,16 +37,18 @@ class De_Item_Link extends De_Item {
 		}
 		
 		// Add 'direct-hidden' class for hidden items
-		if ( $this->get_setting( 'postId' ) && de_is_hidden( $this->get_setting( 'postId' ) ) ) {
-			$attr = $this->get_setting( 'attr' );
-			$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-hidden' : 'direct-hidden' );
-			$this->set_setting( 'attr', $attr );
-		}
-		// Add 'direct-show-all' class if 'Show all' option is checked
-		if ( ! empty( $_SESSION[ 'de_show_all' ] ) ) {
-			$attr = $this->get_setting( 'attr' );
-			$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-show-all' : 'direct-show-all' );
-			$this->set_setting( 'attr', $attr );
+		if ( $this->store == 'post' ) {
+			if ( $this->get_setting( 'postId' ) && de_is_hidden( $this->get_setting( 'postId' ) ) ) {
+				$attr = $this->get_setting( 'attr' );
+				$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-hidden' : 'direct-hidden' );
+				$this->set_setting( 'attr', $attr );
+			}
+			// Add 'direct-show-all' class if 'Show all' option is checked
+			if ( ! empty( $_SESSION[ 'de_show_all' ] ) ) {
+				$attr = $this->get_setting( 'attr' );
+				$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-show-all' : 'direct-show-all' );
+				$this->set_setting( 'attr', $attr );
+			}
 		}
 	}
 
