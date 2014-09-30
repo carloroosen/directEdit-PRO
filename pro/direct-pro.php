@@ -27,6 +27,7 @@ add_action( 'login_init', 'de_pro_login_redirect' );
 add_action( 'init', 'de_pro_extensions_include', 5 );
 add_action( 'pre_get_posts', 'de_pro_filter_posts' );
 add_action( 'template_include', 'de_pro_custom_template' );
+add_action( 'template_redirect', 'de_pro_edit_menu', 2 );
 add_action( 'template_redirect', 'de_pro_404_override' );
 add_action( 'template_redirect', 'de_pro_nonactive_languages_redirect' );
 add_action( 'template_redirect', 'de_pro_perform_actions', 5 );
@@ -41,10 +42,12 @@ add_filter( 'wp_nav_menu_objects', 'de_pro_nav_menu_filter', 10, 2 );
 function de_pro_tweak_menu( $wp_admin_bar ) {
 	global $current_user;
 	global $direct_queried_object;
+	global $wp;
 
 	remove_action( 'admin_bar_menu', 'de_adjust_menu', 100 );
 
-	if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) == $direct_queried_object->ID ) {
+	$uri =  explode( '/', $wp->request );
+	if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ! empty( $uri[ 0 ] ) && ( $uri[ 0 ] == 'edit-menu' ) ) {
 		$wp_admin_bar->remove_menu( 'site-name' );
 		$wp_admin_bar->remove_menu( 'view-site' );
 		$wp_admin_bar->remove_menu( 'dashboard' );
@@ -277,12 +280,12 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			}
 		}
 		
-		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) != $direct_queried_object->ID ) {
+		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
 			$wp_admin_bar->add_node( array(
 					'id' => 'menu-edit',
 					'title' => __( 'Edit menu', 'direct-edit' ),
 					'parent' => '',
-					'href' => get_permalink( get_option( 'de_edit_menu_page' ) ),
+					'href' => home_url( '/edit-menu/' ),
 					'group' => '',
 					'meta' => array( 'title' => __( 'Edit menu', 'direct-edit' ) )
 				)
@@ -395,12 +398,12 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			}
 		}
 
-		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) != $direct_queried_object->ID ) {
+		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
 			$wp_admin_bar->add_node( array(
 					'id' => 'menu-edit',
 					'title' => __( 'Edit menu', 'direct-edit' ),
 					'parent' => '',
-					'href' => get_permalink( get_option( 'de_edit_menu_page' ) ),
+					'href' => home_url( '/edit-menu/' ),
 					'group' => '',
 					'meta' => array( 'title' => __( 'Edit menu', 'direct-edit' ) )
 				)
@@ -602,6 +605,24 @@ function de_pro_custom_template( $template ) {
 	return $template;
 }
 
+function de_pro_edit_menu() {
+	global $wp_query;
+	global $post_type;
+	global $post;
+	global $wp;
+	global $de_current_template;
+	global $direct_queried_object;
+	
+	$uri =  explode( '/', $wp->request );
+	if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ! empty( $uri[ 0 ] ) && ( $uri[ 0 ] == 'edit-menu' ) ) {
+		// "Edit menu" functionality
+		include( ABSPATH . 'wp-admin/includes/post.php' );
+		$de_current_template = 'edit-menu.php';
+		include( get_stylesheet_directory() . '/edit-menu.php' );
+		exit;
+	}
+}
+
 function de_pro_404_override() {
 	global $wp_query;
 	global $post_type;
@@ -675,7 +696,8 @@ function de_pro_perform_actions() {
 	global $direct_queried_object;
 	
 	// Check Edit menu page permissions
-	if ( get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) == $direct_queried_object->ID && ! ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) {
+	$uri =  explode( '/', $wp->request );
+	if ( get_option( 'de_menu_editor_enabled' ) && de_get_current_template() == 'edit-menu.php' && ! ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 		wp_redirect( home_url() );
 		die();
 	}
@@ -1032,19 +1054,19 @@ function de_pro_footer_scripts() {
 	global $direct_queried_object;
 
 	if ( ! is_admin() ) {
-		if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
-			// Direct Menu Editor
-			if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && get_option( 'de_edit_menu_page' ) == $direct_queried_object->ID ) {
-				?>
+		// Direct Menu Editor
+		if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && de_get_current_template() == 'edit-menu.php' ) {
+			?>
 <script>
 	jQuery(document).ready(function() {
 		directEditMenu(<?php echo json_encode( De_Store::read_menus() ); ?>);
 		jQuery('li#wp-admin-bar-menu-save a').directMenuSaveButton();
 	});
 </script>
-				<?php
-			}
-			
+			<?php
+		}
+		
+		if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
 			if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
 					?>
 <div class="direct-editable" id="direct-page-options" data-global-options="page-options" style="display: none;">

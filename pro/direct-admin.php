@@ -772,68 +772,13 @@ function de_plugin_menu() {
 					update_option( 'de_' . $key, $value );
 				}
 				
-				// Create Edit Menu page
-				if ( ( ! get_option( 'de_edit_menu_page' ) || ! get_post( get_option( 'de_edit_menu_page' ) ) ) ) {
-					$editMenuPage = array(
-						'post_title' => __( 'Edit Menu', 'direct-edit' ),
-						'post_content' => '',
-						'post_status' => 'publish',
-						'post_date' => date('Y-m-d H:i:s'),
-						'post_author' => $user_ID,
-						'post_type' => 'page',
-						'post_category' => array( 0 )
-					);
+				// Check menu edit page template
+				$target = get_stylesheet_directory();
 
-					$editMenuPageId = wp_insert_post( $editMenuPage );
-					De_Url::register_url( $editMenuPageId, 'edit-menu' );
-					
-					update_post_meta( $editMenuPageId, '_wp_page_template', 'edit-menu.php' );
-					
-					if ( De_Language_Wrapper::has_multilanguage() ) {
-						De_Language_Wrapper::set_post_language( $editMenuPageId, De_Language_Wrapper::get_default_language() );
-						De_Language_Wrapper::create_language_posts( $editMenuPageId );
-						
-						foreach( De_Language_Wrapper::get_language_posts( $editMenuPageId ) as $lang => $lang_post ) {
-							if ( $lang_post->ID == $editMenuPageId )
-								continue;
-							
-							$data = array(
-								'ID' => $lang_post->ID,
-								'post_title' => __( 'Edit Menu', 'direct-edit' ),
-								'post_name' => sanitize_title( __( 'edit menu', 'direct-edit' ) )
-							);
-							wp_update_post( $data );
-
-							De_Url::register_url( $lang_post->ID, sanitize_title( __( 'edit menu', 'direct-edit' ) ) );
-
-							update_post_meta( $lang_post->ID, '_wp_page_template', 'edit-menu.php' );
-						}
-					}
-					
-					update_option( 'de_edit_menu_page', $editMenuPageId );
-					
-					// Check menu edit page template
-					$target = get_stylesheet_directory();
-
-					if ( ! file_exists( $target . 'edit-menu.php' ) ) {
-						$template = file_get_contents( DIRECT_PATH . 'pro/template/edit-menu.php' );
-						file_put_contents ( $target . '/edit-menu.php', $template );
-						chmod( $target . '/edit-menu.php', 0777 );
-					}
-				}
-			} else {
-				$editMenuPageId = get_option( 'de_edit_menu_page' );
-				
-				if ( $editMenuPageId ) {
-					if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $editMenuPageId ) ) {
-						foreach( De_Language_Wrapper::get_language_posts( $editMenuPageId ) as $lang_post ) {
-							wp_delete_post( $lang_post->ID, true );
-						}
-					} else {
-						wp_delete_post( $editMenuPageId, true );
-					}
-					
-					delete_option( 'de_edit_menu_page' );
+				if ( ! file_exists( $target . 'edit-menu.php' ) ) {
+					$template = file_get_contents( DIRECT_PATH . 'pro/template/edit-menu.php' );
+					file_put_contents ( $target . '/edit-menu.php', $template );
+					chmod( $target . '/edit-menu.php', 0777 );
 				}
 			}
 

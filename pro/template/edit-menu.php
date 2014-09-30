@@ -1,8 +1,4 @@
 <?php
-/**
- * Template Name: Edit Menu
- */
-
 get_header();
 
 if ( ! empty( $de_webform_errors ) )
