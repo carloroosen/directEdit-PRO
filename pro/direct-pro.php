@@ -616,7 +616,8 @@ function de_pro_edit_menu() {
 	$uri =  explode( '/', $wp->request );
 	if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ! empty( $uri[ 0 ] ) && ( $uri[ 0 ] == 'edit-menu' ) ) {
 		// "Edit menu" functionality
-		include( ABSPATH . 'wp-admin/includes/post.php' );
+		status_header( 200 );
+		$wp_query->is_404 = false;
 		$de_current_template = 'edit-menu.php';
 		include( get_stylesheet_directory() . '/edit-menu.php' );
 		exit;
