@@ -44,7 +44,7 @@ class De_Item_Menu extends De_Item {
 			}
 			
 			// Use direct_menu() params
-			$useful_params = array( 'depth', 'startLevel' );
+			$useful_params = array( 'depth', 'startLevel', 'menu_id', 'menu_class' );
 			foreach( $params as $key => $value ) {
 				if ( in_array( $key, $useful_params ) ) {
 					$this->set_setting( $key, $value );
@@ -55,23 +55,13 @@ class De_Item_Menu extends De_Item {
 			$attr[ 'data-global-options' ] = $this->get_setting( 'options' );
 			$attr[ 'data-local-options' ] = $this->build_local_options();
 			
-			if ( ! empty( $params[ 'container' ] ) && $params[ 'container' ] == 'div' ) {
-				if ( isset( $params[ 'container_id' ] ) ) {
-					$attr[ 'id' ] = $params[ 'container_id' ];
-				} else {
-					$attr[ 'id' ] = $this->reference;
-				}
-				$attr[ 'class' ] = ( isset( $params[ 'container_class' ] ) ? $params[ 'container_class' ] . ' direct-editable-menu' : 'direct-editable-menu' );
-				$result .= '<div' . self::attr_to_string( $attr ) . '><ul></ul></div>';
+			if ( isset( $params[ 'container_id' ] ) ) {
+				$attr[ 'id' ] = $params[ 'container_id' ];
 			} else {
-				if ( isset( $params[ 'menu_id' ] ) ) {
-					$attr[ 'id' ] = $params[ 'menu_id' ];
-				} else {
-					$attr[ 'id' ] = $this->reference;
-				}
-				$attr[ 'class' ] = ( isset( $params[ 'menu_class' ] ) ? $params[ 'menu_class' ] . ' direct-editable-menu' : 'direct-editable-menu' );
-				$result .= '<ul' . self::attr_to_string( $attr ) . '></ul>';
+				$attr[ 'id' ] = $this->reference;
 			}
+			$attr[ 'class' ] = ( isset( $params[ 'container_class' ] ) ? $params[ 'container_class' ] . ' direct-editable-menu' : 'direct-editable-menu' );
+			$result .= '<div' . self::attr_to_string( $attr ) . '><ul></ul></div>';
 			
 			if ( $params[ 'echo' ] === false ) {
 				return $result;
