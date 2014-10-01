@@ -761,6 +761,10 @@ function de_plugin_menu() {
 			}
 			
 			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
+		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_seo' == $_REQUEST[ 'action' ] ) {
+			update_option( 'de_use_seo', $_REQUEST[ 'use_seo' ] );
+
+			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
 			update_option( 'de_menu_editor_enabled', $_REQUEST[ 'menu_editor_enabled' ] );
 			if ( get_option( 'de_menu_editor_enabled' ) ) {
@@ -1168,6 +1172,35 @@ function de_plugin_page() {
 								Set <a href="<?php echo admin_url( '/options-permalink.php' ); ?>"><i>Permalink Settings</i></a> to <i>Post name</i> to use this option
 								<?php } ?>
 							</td>
+						</tr>
+						<tr>
+							<td><input type="submit" value="save" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+		</div>
+		<h3><i><?php _e( 'SEO', 'direct-edit' ); ?></i></h3>
+		<div class="inside">
+			<form method="post">
+				<input type="hidden" name="action" value="de_seo" />
+				<table border="0">
+					<tbody>
+						<tr>
+							<td><label><input type="radio" name="use_seo" value=""<?php echo ( get_option( 'de_use_seo' ) == '' ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Use DE SEO', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php if ( is_plugin_active( 'all-in-one-seo-pack/all_in_one_seo_pack.php' ) ) { ?>
+						<tr>
+							<td><label><input type="radio" name="use_seo" value="all-in-one-seo-pack"<?php echo ( get_option( 'de_use_seo' ) == 'all-in-one-seo-pack' ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Use All In One SEO Pack', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
+						<?php if ( is_plugin_active( 'wordpress-seo/wp-seo.php' ) ) { ?>
+						<tr>
+							<td><label><input type="radio" name="use_seo" value="wordpress-seo"<?php echo ( get_option( 'de_use_seo' ) == 'wordpress-seo' ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Use WordPress SEO', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
+						<tr>
+							<td><label><input type="radio" name="use_seo" value="none"<?php echo ( get_option( 'de_use_seo' ) == 'none' ? ' checked="checked"' : '' ); ?> /> <?php _e( 'Don\'t use any SEO', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr>
 							<td><input type="submit" value="save" /></td>

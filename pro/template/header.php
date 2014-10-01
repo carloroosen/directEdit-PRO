@@ -1,14 +1,9 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<meta charset="UTF-8" />
-<meta name="robots" content="index, follow" />
-<meta name="description" content="<?php direct_bloginfo( 'description' ); ?>" />
-<meta name="keywords" content="" />
-<title><?php direct_bloginfo( 'title' ); ?></title>
-<?php
-	wp_head();
-?>
+<meta charset="<?php bloginfo( 'charset' ); ?>" />
+<title><?php wp_title(); ?></title>
+<?php wp_head(); ?>
 
 </head>
 

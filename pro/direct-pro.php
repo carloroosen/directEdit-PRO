@@ -38,6 +38,10 @@ add_action( 'wp_print_footer_scripts', 'de_pro_footer_scripts', 20 );
 add_filter( 'edit_post_link', 'de_pro_remove_edit_post_link' );
 add_filter( 'logout_url', 'de_pro_logout_home', 10, 2 );
 add_filter( 'wp_nav_menu_objects', 'de_pro_nav_menu_filter', 10, 2 );
+if ( get_option( 'de_use_seo' ) == '' ) {
+	add_filter( 'wp_title', 'de_pro_seo_title' );
+	add_action( 'wp_head', 'de_pro_seo' );
+}
 
 function de_pro_tweak_menu( $wp_admin_bar ) {
 	global $current_user;
@@ -879,6 +883,132 @@ function de_pro_handle_url() {
 	}
 }
 
+function de_pro_footer_scripts() {
+	global $de_global_options;
+	global $direct_queried_object;
+
+	if ( ! is_admin() ) {
+		// Direct Menu Editor
+		if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && de_get_current_template() == 'edit-menu.php' ) {
+			?>
+<script>
+	jQuery(document).ready(function() {
+		directEditMenu(<?php echo json_encode( De_Store::read_menus() ); ?>);
+		jQuery('li#wp-admin-bar-menu-save a').directMenuSaveButton();
+	});
+</script>
+			<?php
+		}
+		
+		if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
+			if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
+					?>
+<div class="direct-editable" id="direct-page-options" data-global-options="page-options" style="display: none;">
+	<form>
+		<?php if ( ! empty( $direct_queried_object->ID ) ) { ?>
+		<input type="hidden" name="postId" id="postId" value="<?php echo $direct_queried_object->ID; ?>" />
+		<?php } else { ?>
+		<input type="hidden" name="postType" id="postType" value="<?php echo $direct_queried_object->post_type; ?>" />
+		<?php } ?>
+		<input type="hidden" name="templateName" id="templateName" value="<?php echo de_get_current_template(); ?>" />
+		<div style="float:left; width:46%; padding:5px 2%;">
+			<?php if ( get_option( 'de_use_seo' ) == '' ) { ?>
+			<h5><?php _e( 'Title', 'direct-edit' ); ?></h5>
+			<input type="text" name="de_title" id="de_title" value="<?php direct_bloginfo( 'title' ); ?>" />
+			<h5><?php _e( 'Description', 'direct-edit' ); ?></h5>
+			<textarea name="de_description" id="de_description"><?php direct_bloginfo( 'description' ); ?></textarea>
+			<h5><?php _e( 'Keywords', 'direct-edit' ); ?></h5>
+			<input type="text" name="de_keywords" id="de_keywords" value="<?php direct_bloginfo( 'keywords' ); ?>" />
+			<?php } elseif( is_plugin_active( 'all-in-one-seo-pack/all_in_one_seo_pack.php' ) && get_option( 'de_use_seo' ) == 'all-in-one-seo-pack' ) { ?>
+			<?php if ( ! de_is_front_page( $direct_queried_object->ID ) ) { ?>
+			<h5><?php _e( 'Title', 'direct-edit' ); ?></h5>
+			<input type="text" name="_aioseop_title" id="_aioseop_title" value="<?php echo esc_attr( get_post_meta( $direct_queried_object->ID, '_aioseop_title', true ) ); ?>" />
+			<h5><?php _e( 'Description', 'direct-edit' ); ?></h5>
+			<textarea name="_aioseop_description" id="_aioseop_description"><?php echo esc_textarea( get_post_meta( $direct_queried_object->ID, '_aioseop_description', true ) ); ?></textarea>
+			<h5><?php _e( 'Keywords', 'direct-edit' ); ?></h5>
+			<input type="text" name="_aioseop_keywords" id="_aioseop_keywords" value="<?php echo esc_attr( get_post_meta( $direct_queried_object->ID, '_aioseop_keywords', true ) ); ?>" />
+			<?php } ?>
+			<?php } elseif( is_plugin_active( 'wordpress-seo/wp-seo.php' ) && get_option( 'de_use_seo' ) == 'wordpress-seo' ) { ?>
+			<h5><?php _e( 'Title', 'direct-edit' ); ?></h5>
+			<input type="text" name="_yoast_wpseo_title" id="_yoast_wpseo_title" value="<?php echo esc_attr( get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_title', true ) ); ?>" />
+			<h5><?php _e( 'Description', 'direct-edit' ); ?></h5>
+			<textarea name="_yoast_wpseo_metadesc" id="_yoast_wpseo_metadesc"><?php echo esc_textarea( get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_metadesc', true ) ); ?></textarea>
+			<h5><?php _e( 'Keywords', 'direct-edit' ); ?></h5>
+			<input type="text" name="_yoast_wpseo_focuskw" id="_yoast_wpseo_focuskw" value="<?php echo esc_attr( get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_focuskw', true ) ); ?>" />
+			<?php } ?>
+			<?php if( De_Language_Wrapper::has_multilanguage() ) { // It is needed for menu translation only ?>
+				<h5><?php _e( 'Navigation label', 'direct-edit' ); ?></h5>
+				<input type="text" name="de_navigation_label" id="de_navigation_label" value="<?php direct_bloginfo( 'navigation_label' ); ?>" />
+			<?php
+			}
+			if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
+				if ( ! is_front_page() ) {
+				?>
+					<h5><?php _e( 'Slug', 'direct-edit' ); ?></h5>
+					<input type="text" name="de_slug" id="de_slug" value="<?php direct_bloginfo( 'slug' ); ?>" />
+				<?php
+				}
+			}
+			?>
+		</div>
+		<?php
+		if ( $direct_queried_object->post_type == 'post' ) {
+			$categories = get_categories( array( 'orderby' => 'name', 'hide_empty' => 0 ) );
+			$category_input = array();
+			foreach( $categories as $category ) {
+				$category_input[] = array( 'id' => $category->term_id, 'name' => $category->name );
+			}
+			?>
+		<div style="float:left; width:46%; padding:5px 2%;">
+			<h5><?php _e( 'Category', 'direct-edit' ); ?></h5>
+			<select name="de_category">
+			<?php
+			foreach( $categories as $category ) {
+			?>
+			<option value="<?php echo $category->term_id; ?>"<?php echo ( has_category( $category->term_id, $direct_queried_object->ID ) ? ' selected="selected"' : '' ) ?>><?php echo $category->name; ?></option>
+			<?php
+			}
+			?>
+			</select>
+			<?php if ( current_user_can( 'manage_categories' ) ) { ?>
+			<h5>Manage Categories</h5>
+			<div id="categoryEditor">
+				<input type="hidden" id="categoryInput" name="de_category_input" value="<?php echo esc_attr( json_encode( $category_input ) ); ?>">
+			</div>
+			<?php } ?>
+		</div>
+		<div style="clear: both;"></div>
+			<?php
+		}
+		?>
+		<?php do_action( 'de_add_page_options' ); ?>
+		<div style="float:right;">
+			<input class="btn" type="submit" value="<?php _e( 'Save', 'direct-edit' ); ?>" />
+		</div>
+		<div style="clear: both;"></div>
+	</form>
+</div>
+<script>
+	jQuery(document).ready(function() {
+		jQuery('li#wp-admin-bar-page-options a').directOptionButton();
+		<?php
+		if ( get_post_meta( $direct_queried_object->ID, 'de_new_page', true ) ) {
+			?>
+			if ( confirm( '<?php _e( 'Do you want to show this page?' ); ?>' ) ) {
+				location.href = '<?php echo add_query_arg( array( 'de_show' => 1 ), De_Url::get_url( $direct_queried_object->ID ) ); ?>';
+			}
+			<?php
+			delete_post_meta( $direct_queried_object->ID, 'de_new_page' );
+		}
+		?>
+	});
+</script>
+				<?php
+			}
+		}
+	}
+}
+
 function de_pro_remove_edit_post_link( $link ) {
 	global $current_user;
 	
@@ -1050,108 +1180,11 @@ function de_pro_nav_menu_filter( $items, $args ) {
 	return $out;
 }
 
-function de_pro_footer_scripts() {
-	global $de_global_options;
-	global $direct_queried_object;
+function de_pro_seo_title() {
+	return direct_bloginfo( 'title', false );
+}
 
-	if ( ! is_admin() ) {
-		// Direct Menu Editor
-		if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && de_get_current_template() == 'edit-menu.php' ) {
-			?>
-<script>
-	jQuery(document).ready(function() {
-		directEditMenu(<?php echo json_encode( De_Store::read_menus() ); ?>);
-		jQuery('li#wp-admin-bar-menu-save a').directMenuSaveButton();
-	});
-</script>
-			<?php
-		}
-		
-		if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
-			if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
-					?>
-<div class="direct-editable" id="direct-page-options" data-global-options="page-options" style="display: none;">
-	<form>
-		<?php if ( ! empty( $direct_queried_object->ID ) ) { ?>
-		<input type="hidden" name="postId" id="postId" value="<?php echo $direct_queried_object->ID; ?>" />
-		<?php } else { ?>
-		<input type="hidden" name="postType" id="postType" value="<?php echo $direct_queried_object->post_type; ?>" />
-		<?php } ?>
-		<input type="hidden" name="templateName" id="templateName" value="<?php echo de_get_current_template(); ?>" />
-		<div style="float:left; width:46%; padding:5px 2%;">
-			<h5><?php _e( 'Title', 'direct-edit' ); ?></h5>
-			<input type="text" name="de_title" id="de_title" value="<?php direct_bloginfo( 'title' ); ?>" />
-			<h5><?php _e( 'Description', 'direct-edit' ); ?></h5>
-			<textarea name="de_description" id="de_description"><?php direct_bloginfo( 'description' ); ?></textarea>
-			<?php if( De_Language_Wrapper::has_multilanguage() ) { // It is needed for menu translation only ?>
-				<h5><?php _e( 'Navigation label', 'direct-edit' ); ?></h5>
-				<input type="text" name="de_navigation_label" id="de_navigation_label" value="<?php direct_bloginfo( 'navigation_label' ); ?>" />
-			<?php
-			}
-			if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
-				if ( ! is_front_page() ) {
-				?>
-					<h5><?php _e( 'Slug', 'direct-edit' ); ?></h5>
-					<input type="text" name="de_slug" id="de_slug" value="<?php direct_bloginfo( 'slug' ); ?>" />
-				<?php
-				}
-			}
-			?>
-		</div>
-		<?php
-		if ( $direct_queried_object->post_type == 'post' ) {
-			$categories = get_categories( array( 'orderby' => 'name', 'hide_empty' => 0 ) );
-			$category_input = array();
-			foreach( $categories as $category ) {
-				$category_input[] = array( 'id' => $category->term_id, 'name' => $category->name );
-			}
-			?>
-		<div style="float:left; width:46%; padding:5px 2%;">
-			<h5><?php _e( 'Category', 'direct-edit' ); ?></h5>
-			<select name="de_category">
-			<?php
-			foreach( $categories as $category ) {
-			?>
-			<option value="<?php echo $category->term_id; ?>"<?php echo ( has_category( $category->term_id, $direct_queried_object->ID ) ? ' selected="selected"' : '' ) ?>><?php echo $category->name; ?></option>
-			<?php
-			}
-			?>
-			</select>
-			<?php if ( current_user_can( 'manage_categories' ) ) { ?>
-			<h5>Manage Categories</h5>
-			<div id="categoryEditor">
-				<input type="hidden" id="categoryInput" name="de_category_input" value="<?php echo esc_attr( json_encode( $category_input ) ); ?>">
-			</div>
-			<?php } ?>
-		</div>
-		<div style="clear: both;"></div>
-			<?php
-		}
-		?>
-		<?php do_action( 'de_add_page_options' ); ?>
-		<div style="float:right;">
-			<input class="btn" type="submit" value="<?php _e( 'Save', 'direct-edit' ); ?>" />
-		</div>
-		<div style="clear: both;"></div>
-	</form>
-</div>
-<script>
-	jQuery(document).ready(function() {
-		jQuery('li#wp-admin-bar-page-options a').directOptionButton();
-		<?php
-		if ( get_post_meta( $direct_queried_object->ID, 'de_new_page', true ) ) {
-			?>
-			if ( confirm( '<?php _e( 'Do you want to show this page?' ); ?>' ) ) {
-				location.href = '<?php echo add_query_arg( array( 'de_show' => 1 ), De_Url::get_url( $direct_queried_object->ID ) ); ?>';
-			}
-			<?php
-			delete_post_meta( $direct_queried_object->ID, 'de_new_page' );
-		}
-		?>
-	});
-</script>
-				<?php
-			}
-		}
-	}
+function de_pro_seo() {
+	echo "<meta name=\"description\" content=\"" . direct_bloginfo( 'description', false ) . "\" />\n";
+	echo "<meta name=\"keywords\" content=\"" . direct_bloginfo( 'keywords', false ) . "\" />\n";
 }

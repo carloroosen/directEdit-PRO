@@ -29,12 +29,12 @@ class PluginUpdateCheckerPanel extends Debug_Bar_Panel {
 		$responseBox = '<div class="puc-ajax-response" style="display: none;"></div>';
 
 		echo '<h3>Configuration</h3>';
-		echo '<table class="widefat puc-debug-data">';
+		echo '<table class="puc-debug-data">';
 		$this->row('Plugin file', htmlentities($this->updateChecker->pluginFile));
 		$this->row('Slug', htmlentities($this->updateChecker->slug));
 		$this->row('DB option', htmlentities($this->updateChecker->optionName));
 
-		$requestInfoButton = get_submit_button('Request Info', 'secondary', 'puc-request-info-button', false);
+		$requestInfoButton = function_exists('get_submit_button') ? get_submit_button('Request Info', 'secondary', 'puc-request-info-button', false) : '';
 		$this->row('Metadata URL', htmlentities($this->updateChecker->metadataUrl) . ' ' . $requestInfoButton . $responseBox);
 
 		if ( $this->updateChecker->checkPeriod > 0 ) {
@@ -42,12 +42,27 @@ class PluginUpdateCheckerPanel extends Debug_Bar_Panel {
 		} else {
 			$this->row('Automatic checks', 'Disabled');
 		}
+
+		if ( isset($this->updateChecker->throttleRedundantChecks) ) {
+			if ( $this->updateChecker->throttleRedundantChecks && ($this->updateChecker->checkPeriod > 0) ) {
+				$this->row(
+					'Throttling',
+					sprintf(
+						'Enabled. If an update is already available, check for updates every %1$d hours instead of every %2$d hours.',
+						$this->updateChecker->throttledCheckPeriod,
+						$this->updateChecker->checkPeriod
+					)
+				);
+			} else {
+				$this->row('Throttling', 'Disabled');
+			}
+		}
 		echo '</table>';
 
 		echo '<h3>Status</h3>';
-		echo '<table class="widefat puc-debug-data">';
+		echo '<table class="puc-debug-data">';
 		$state = $this->updateChecker->getUpdateState();
-		$checkNowButton = get_submit_button('Check Now', 'secondary', 'puc-check-now-button', false);
+		$checkNowButton = function_exists('get_submit_button') ? get_submit_button('Check Now', 'secondary', 'puc-check-now-button', false) : '';
 
 		if ( isset($state, $state->lastCheck) ) {
 			$this->row('Last check', $this->formatTimeWithDelta($state->lastCheck) . ' ' . $checkNowButton . $responseBox);
@@ -62,12 +77,13 @@ class PluginUpdateCheckerPanel extends Debug_Bar_Panel {
 			$this->row('Checked version', htmlentities($state->checkedVersion));
 			$this->row('Cached update', $state->update);
 		}
+		$this->row('Update checker class', htmlentities(get_class($this->updateChecker)));
 		echo '</table>';
 
 		$update = $this->updateChecker->getUpdate();
 		if ( $update !== null ) {
 			echo '<h3>An Update Is Available</h3>';
-			echo '<table class="widefat puc-debug-data">';
+			echo '<table class="puc-debug-data">';
 			$fields = array('version', 'download_url', 'slug', 'homepage', 'upgrade_notice');
 			foreach($fields as $field) {
 				$this->row(ucwords(str_replace('_', ' ', $field)), htmlentities($update->$field));
@@ -97,7 +113,7 @@ class PluginUpdateCheckerPanel extends Debug_Bar_Panel {
 	}
 
 	private function formatTimestamp($unixTime) {
-		return gmdate('Y-m-d H:i:s', $unixTime + (get_option('gmt_offset') * HOUR_IN_SECONDS));
+		return gmdate('Y-m-d H:i:s', $unixTime + (get_option('gmt_offset') * 3600));
 	}
 
 	private function row($name, $value) {

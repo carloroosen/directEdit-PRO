@@ -124,11 +124,14 @@ function direct_bloginfo( $show, $echo = true, $post_id = null ) {
 			case 'title':
 				$result = get_post_meta( $post_id, 'de_title', true );
 				if ( ! $result ) {
-					$result = wptexturize( $post->post_title . ' | ' . get_bloginfo( 'name' ) );
+					$result = esc_attr( wptexturize( $post->post_title . ' | ' . get_bloginfo( 'name' ) ) );
 				}
 			break;
 			case 'description':
-				$result = get_post_meta( $post_id, 'de_description', true );
+				$result = esc_attr( get_post_meta( $post_id, 'de_description', true ) );
+			break;
+			case 'keywords':
+				$result = esc_attr( get_post_meta( $post_id, 'de_keywords', true ) );
 			break;
 			case 'slug':
 				$result = get_post_meta( $post_id, 'de_slug', true );
