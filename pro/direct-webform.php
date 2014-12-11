@@ -387,7 +387,7 @@ function de_webform_process( $template ) {
 		$userEmailBody = get_post_meta( $postId, 'de_user_email_body', true );
 		$userEmailAttachUploads = get_post_meta( $postId, 'de_user_attach_uploads', true );
 
-		do_action( $post->post_type . '_form_setup', $post );
+		do_action( 'de_webform_form_setup', $post );
 		
 		if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
 			// Check uploads
@@ -419,7 +419,7 @@ function de_webform_process( $template ) {
 				}
 			}
 
-			do_action( $post->post_type . '_form_validate', $post );
+			do_action( 'de_webform_form_validate', $post );
 
 			if ( empty( $de_webform_errors ) ) {
 				foreach( $_POST as $key => $value) {
@@ -427,7 +427,7 @@ function de_webform_process( $template ) {
 					$de_webform_replace[] = trim( $value );
 				}
 				
-				do_action( $post->post_type . '_form_action', $post );
+				do_action( 'de_webform_form_action', $post );
 				
 				if ( empty( $de_webform_errors ) ) {
 					// Admin email
