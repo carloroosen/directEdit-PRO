@@ -800,6 +800,7 @@ function de_pro_handle_url() {
 	global $post;
 	global $direct_queried_object;
 	global $wp_query;
+	global $wp_the_query;
 
 	if ( ! is_admin() ) {
 		$p = De_Url::get_post( $wp->request );
@@ -854,6 +855,8 @@ function de_pro_handle_url() {
 					elseif ( isset( $_GET[ $wpvar ] ) )
 						$wp_query->query_vars[ $wpvar ] = $_GET[ $wpvar ];
 				}
+				
+				$wp_the_query = $wp_query;
 			}
 		} else {
 			if ( ! empty( $post ) ) {
