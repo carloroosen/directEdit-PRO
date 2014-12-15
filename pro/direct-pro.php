@@ -39,7 +39,7 @@ add_filter( 'edit_post_link', 'de_pro_remove_edit_post_link' );
 add_filter( 'logout_url', 'de_pro_logout_home', 10, 2 );
 add_filter( 'wp_nav_menu_objects', 'de_pro_nav_menu_filter', 10, 2 );
 if ( get_option( 'de_use_seo' ) == '' ) {
-	add_filter( 'wp_title', 'de_pro_seo_title' );
+	add_filter( 'wp_title', 'de_pro_seo_title', 100 );
 	add_action( 'wp_head', 'de_pro_seo' );
 }
 
