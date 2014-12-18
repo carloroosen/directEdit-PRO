@@ -202,10 +202,10 @@ function de_webform_template_dropdown( $post_type, $default = '' ) {
 function de_webform_capabilities() {
 	// Add dE capabilities
 	$admin = get_role( 'administrator' );
-	if ( is_object( $admin ) && ! user_can( $admin->ID, 'edit_de_webform' ) ) {
+	if ( $admin && empty( $admin->capabilities[ 'edit_de_webform' ] ) ) {
 		$admin->add_cap( 'edit_de_webform', true );
 	}
-	if ( is_object( $admin ) && ! user_can( $admin->ID, 'delete_de_webform' ) ) {
+	if ( $admin && empty( $admin->capabilities[ 'delete_de_webform' ] ) ) {
 		$admin->add_cap( 'delete_de_webform', true );
 	}
 }

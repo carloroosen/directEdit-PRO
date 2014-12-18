@@ -505,12 +505,12 @@ function de_pro_create_post_types() {
 
 function de_pro_capabilities() {
 	$admin = get_role( 'administrator' );
-	if ( is_object( $admin ) && ! user_can( $admin->ID, 'edit_de_frontend' ) ) {
+	if ( $admin && empty( $admin->capabilities[ 'edit_de_frontend' ] ) ) {
 		$admin->add_cap( 'edit_de_frontend', true );
 	}
 	
 	$editor = get_role( 'editor' );
-	if ( is_object( $editor ) && ! user_can( $editor->ID, 'edit_de_frontend' ) ) {
+	if ( $editor && empty( $editor->capabilities[ 'edit_de_frontend' ] ) ) {
 		$editor->add_cap( 'edit_de_frontend', true );
 	}
 	if ( ( get_option( 'de_tweak_backend' ) || get_option( 'de_tweak_frontend' ) ) && ! get_option( 'de_menu_editor_enabled' ) ) {
@@ -716,18 +716,38 @@ function de_pro_perform_actions() {
 
 		if( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
 			if( ! empty( $_GET[ 'de_hide' ] ) ) {
-				$p = array();
-				$p[ 'ID' ] = $direct_queried_object->ID;
-				$p[ 'post_status' ] = 'draft';
-				wp_update_post( $p );
+				if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $direct_queried_object->ID ) ) {
+					foreach( De_Language_Wrapper::get_language_posts( $direct_queried_object->ID ) as $lang_post ) {
+						$p = array();
+						$p[ 'ID' ] = $lang_post->ID;
+						$p[ 'post_status' ] = 'draft';
+						wp_update_post( $p );
+					}
+				} else {
+					$p = array();
+					$p[ 'ID' ] = $direct_queried_object->ID;
+					$p[ 'post_status' ] = 'draft';
+					wp_update_post( $p );
+				}
+
 				wp_redirect( get_permalink( $direct_queried_object->ID ) );
 				die();
 			}
 			if( ! empty( $_GET[ 'de_show' ] ) ) {
-				$p = array();
-				$p[ 'ID' ] = $direct_queried_object->ID;
-				$p[ 'post_status' ] = 'publish';
-				wp_update_post( $p );
+				if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $direct_queried_object->ID ) ) {
+					foreach( De_Language_Wrapper::get_language_posts( $direct_queried_object->ID ) as $lang_post ) {
+						$p = array();
+						$p[ 'ID' ] = $lang_post->ID;
+						$p[ 'post_status' ] = 'publish';
+						wp_update_post( $p );
+					}
+				} else {
+					$p = array();
+					$p[ 'ID' ] = $direct_queried_object->ID;
+					$p[ 'post_status' ] = 'publish';
+					wp_update_post( $p );
+				}
+
 				wp_redirect( get_permalink( $direct_queried_object->ID ) );
 				die();
 			}

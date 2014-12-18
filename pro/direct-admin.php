@@ -296,6 +296,8 @@ function de_plugin_menu() {
 			
 			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_pages' == $_REQUEST['action'] ) {
+			update_option( 'show_on_front', 'page' );
+			
 			// Create home page
 			$newPost = array(
 				'post_title' => __( 'Home', 'direct-edit' ),
@@ -309,7 +311,6 @@ function de_plugin_menu() {
 
 			$newPostId = wp_insert_post( $newPost );
 			De_Url::register_url( $newPostId, sanitize_title( __( 'home', 'direct-edit' ) ) );
-			update_option( 'page_on_front', $newPostId );
 
 			if ( De_Language_Wrapper::has_multilanguage() ) {
 				De_Language_Wrapper::set_post_language( $newPostId, De_Language_Wrapper::get_default_language() );
@@ -330,6 +331,8 @@ function de_plugin_menu() {
 				}
 			}
 
+			update_option( 'page_on_front', $newPostId );
+			
 			// Create blog page
 			$newPost = array(
 				'post_title' => __( 'Blog', 'direct-edit' ),
@@ -343,7 +346,6 @@ function de_plugin_menu() {
 
 			$newPostId = wp_insert_post( $newPost );
 			De_Url::register_url( $newPostId, sanitize_title( __( 'blog', 'direct-edit' ) ) );
-			update_option( 'page_for_posts', $newPostId );
 
 			if ( De_Language_Wrapper::has_multilanguage() ) {
 				De_Language_Wrapper::set_post_language( $newPostId, De_Language_Wrapper::get_default_language() );
@@ -364,7 +366,7 @@ function de_plugin_menu() {
 				}
 			}
 			
-			update_option( 'show_on_front', 'page' );
+			update_option( 'page_for_posts', $newPostId );
 			
 			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
 		} elseif ( isset( $_REQUEST['action'] ) && 'create_front_page_template' == $_REQUEST['action'] ) {

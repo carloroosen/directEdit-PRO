@@ -99,12 +99,11 @@ class De_Language_Wrapper {
 					$lang_post = array(
 						'post_content' => '',
 						'post_title' => 'New ' . $post_type->labels->singular_name,
-						'post_status' => 'publish',
+						'post_status' => $post->post_status,
 						'post_date' => current_time( 'mysql' ),
 						'post_author' => $user_ID,
 						'post_type' => $post->post_type,
-						'post_category' => array( 0 ),
-						'post_status' => 'draft'
+						'post_category' => array( 0 )
 					);
 					$lang_post_id = wp_insert_post( $lang_post, true );
 
@@ -126,9 +125,7 @@ class De_Language_Wrapper {
 			}
 			
 			// Update translations
-			foreach ( $translations as $key => $value ) {
-				update_post_meta( $value, '_translations', serialize( $translations ) );
-			}
+			pll_save_post_translations( $translations );
 		}
 	}
 	
