@@ -39,7 +39,7 @@ class De_Language_Wrapper {
 		global $l10n;
 		
 		$polylang->curlang = $polylang->get_language( $lang );
-		$l10n[ 'pll_string' ] = $polylang->mo_import( $polylang->curlang );
+		do_action( 'pll_language_defined', $polylang->curlang->slug, $polylang->curlang );
 	}
 	
 	public static function get_current_language() {
@@ -276,8 +276,14 @@ class De_Language_Wrapper {
 	}
 }
 
+add_filter( 'de_get_de_posts', 'de_add_language_query_arg' );
 add_filter( 'de_translate_menu_items', 'de_translate_menu_items' );
 add_filter( 'wp_redirect', 'de_on_language_add' );
+
+function de_add_language_query_arg( $request ) {
+	$request[ 'lang' ] = De_Language_Wrapper::get_current_language();
+	return $request;
+}
 
 function de_translate_menu_items( $items ) {
 	$items = De_Language_Wrapper::translate_menu_items( $items );

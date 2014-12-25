@@ -835,10 +835,15 @@ function de_pro_handle_url() {
 				// If it is a dE archive page or dE archive language page, then set post_type selection
 				foreach( get_post_types( array( 'show_ui' => true ), 'objects' ) as $pt ) {
 					if ( get_option( 'de_page_for_' . $pt->name ) == $direct_queried_object->ID || de_is_language_post( get_option( 'de_page_for_' . $pt->name ), $direct_queried_object->ID ) ) {
+						if ( De_Language_Wrapper::has_multilanguage() ) {
+							De_Language_Wrapper::set_current_language( De_Language_Wrapper::get_post_language( $direct_queried_object->ID ) );
+						}
+						
 						$request[ 'post_type' ] = $pt->name;
 						$request[ 'posts_per_page' ] = -1;
 						$request[ 'orderby' ] = 'menu_order';
 						$request[ 'order' ] = 'ASC';
+						$request = apply_filters( 'de_get_de_posts', $request );
 						query_posts( $request );
 						
 						$post_type = $pt->name;
