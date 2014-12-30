@@ -177,10 +177,11 @@ class De_Language_Wrapper {
 	public static function on_language_add() {
 		global $wpdb;
 
+		set_time_limit( 300 );
+
 		$o = get_option( 'polylang' );
-		$langDefault = $o[ 'default_lang' ];
-		$langNew = $_POST[ 'slug' ];
-		
+		$post_types = $o[ 'post_types' ];
+
 		$querystr = "
 			SELECT wposts.*
 			FROM $wpdb->posts wposts
@@ -190,7 +191,7 @@ class De_Language_Wrapper {
 		$items = $wpdb->get_results( $querystr, OBJECT );
 		
 		foreach( $items as $item ) {
-			if ( self::get_post_language( $item->ID ) != self::get_default_language() )
+			if ( ! ( $item->post_type == 'post' || $item->post_type == 'page' || in_array( $item->post_type, $post_types ) ) || self::get_post_language( $item->ID ) != self::get_default_language() )
 				continue;
 			
 			self::create_language_posts( $item->ID );
@@ -292,7 +293,7 @@ function de_translate_menu_items( $items ) {
 }
 
 function de_on_language_add( $string ) {
-	if ( $_REQUEST[ 'page' ] == 'mlang' && $_REQUEST[ 'action' ] == 'add' && $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+	if ( $_REQUEST[ 'page' ] == 'mlang' && ( $_REQUEST[ 'action' ] == 'add' || $_REQUEST[ 'pll_action' ] == 'add' ) && $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
 		De_Language_Wrapper::on_language_add();
 	}
 	
