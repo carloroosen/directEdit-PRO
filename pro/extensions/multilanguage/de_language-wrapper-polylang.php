@@ -180,18 +180,24 @@ class De_Language_Wrapper {
 		set_time_limit( 300 );
 
 		$o = get_option( 'polylang' );
-		$post_types = $o[ 'post_types' ];
+		$post_types = array( "'post'", "'page'" );
+		foreach( $o[ 'post_types' ] as $p ) {
+			if ( post_type_exists( $p ) ) {
+				$post_types[] = "'$p'";
+			}
+		}
 
 		$querystr = "
 			SELECT wposts.*
 			FROM $wpdb->posts wposts
-			WHERE wposts.post_status = 'publish'
-			";
+			WHERE (wposts.post_status = 'publish' OR wposts.post_status = 'draft')
+			AND wposts.post_type IN (" . implode( ', ', $post_types ) . ")
+		";
 
 		$items = $wpdb->get_results( $querystr, OBJECT );
 		
 		foreach( $items as $item ) {
-			if ( ! ( $item->post_type == 'post' || $item->post_type == 'page' || in_array( $item->post_type, $post_types ) ) || self::get_post_language( $item->ID ) != self::get_default_language() )
+			if ( self::get_post_language( $item->ID ) != self::get_default_language() )
 				continue;
 			
 			self::create_language_posts( $item->ID );
