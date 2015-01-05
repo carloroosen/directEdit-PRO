@@ -96,9 +96,11 @@ class De_Language_Wrapper {
 					$translations[ $lang ] = $lang_post->ID;
 				} else {
 					// Create new language post
+					$lang_post_title = $post->post_title . ' (' . $lang . ')';
 					$lang_post = array(
 						'post_content' => '',
-						'post_title' => 'New ' . $post_type->labels->singular_name,
+						'post_title' => $lang_post_title,
+						'post_name' => sanitize_title( $lang_post_title ),
 						'post_status' => $post->post_status,
 						'post_date' => current_time( 'mysql' ),
 						'post_author' => $user_ID,
@@ -107,14 +109,6 @@ class De_Language_Wrapper {
 					);
 					$lang_post_id = wp_insert_post( $lang_post, true );
 
-					$lang_post_title = 'New ' . $post_type->labels->singular_name . ' ' . $lang_post_id;
-					$lang_post = array(
-						'ID' => $lang_post_id,
-						'post_title' => $lang_post_title,
-						'post_name' => sanitize_title( $lang_post_title )
-					);
-					wp_update_post( $lang_post );
-					
 					De_Language_Wrapper::set_post_language( $lang_post_id, $lang );
 					$translations[ $lang ] = $lang_post_id;
 
