@@ -107,7 +107,7 @@ class De_Language_Wrapper {
 						'post_type' => $post->post_type,
 						'post_category' => array( 0 )
 					);
-					$lang_post_id = wp_insert_post( $lang_post, true );
+					$lang_post_id = wp_insert_post( $lang_post );
 
 					De_Language_Wrapper::set_post_language( $lang_post_id, $lang );
 					$translations[ $lang ] = $lang_post_id;
