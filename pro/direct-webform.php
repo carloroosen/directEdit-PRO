@@ -269,8 +269,8 @@ function de_webform_validate( $post ) {
 	global $de_webform_values;
 	
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
-		$de_webform_values[ 'email' ] = $wpdb->escape( $_POST[ 'email' ] );
-		$password = $wpdb->escape( $_POST[ 'password' ] );
+		$de_webform_values[ 'email' ] = sanitize_text_field( $_POST[ 'email' ] );
+		$password = sanitize_text_field( $_POST[ 'password' ] );
 
 		if( empty( $de_webform_values[ 'email' ] ) || ! filter_var( $de_webform_values[ 'email' ], FILTER_VALIDATE_EMAIL ) || email_exists( $de_webform_values[ 'email' ] ) == false )
 			$de_webform_errors[ 'email' ] = __( 'You have no email specified.', 'direct-edit' );
@@ -290,7 +290,7 @@ function de_webform_action( $post ) {
 	
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
 		$email = $de_webform_values[ 'email' ];
-		$password = $wpdb->escape( $_POST[ 'password' ] );
+		$password = sanitize_text_field( $_POST[ 'password' ] );
 		$user = get_user_by_email( $email );
 		$username = $user->user_login;
 

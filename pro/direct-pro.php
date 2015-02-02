@@ -488,7 +488,7 @@ function de_pro_create_post_types() {
 		$options = array();
 
 	foreach( $options as $option ) {
-		register_post_type( 'de_' . sanitize_title( $option->name ),
+		register_post_type( 'de_' . sanitize_key( $option->name ),
 			array(
 				'labels' => array(
 					'name' => __( ucfirst( $option->name ), 'direct-edit' )
@@ -496,7 +496,7 @@ function de_pro_create_post_types() {
 				'public' => true,
 				'hierarchical' => true,
 				'supports' => array( 'title', 'editor', 'author', 'page-attributes' ),
-				'rewrite' => array( 'slug' => sanitize_title( $option->name ) ),
+				'rewrite' => array( 'slug' => sanitize_key( $option->name ) ),
 				'has_archive' => true
 			)
 		);
@@ -540,11 +540,16 @@ function de_pro_extensions_include() {
 	remove_action( 'init', 'de_extensions_default', 10 );
 	
 	// Include multilanguage extensions
-	if ( is_plugin_active( 'polylang/polylang.php' ) ) {
+	if ( class_exists( 'Polylang' ) ) {
 		de_pro_include( DIRECT_PATH . 'pro/extensions/multilanguage/de_language-wrapper-polylang.php', DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php' );
 		add_filter( 'locale', 'de_pro_set_locale' );
 	} else {
 		require_once DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php';
+	}
+	
+	// ACF
+	if( class_exists('acf') ) {
+		de_pro_include( DIRECT_PATH . 'pro/extensions/acf/wrapper.php' );
 	}
 }
 
@@ -759,16 +764,18 @@ function de_pro_perform_actions() {
 					// Generic pages
 					if ( ( $locations = get_nav_menu_locations() ) && isset( $locations[ 'direct_main' ] ) ) {
 						$menu_items = wp_get_nav_menu_items( $locations[ 'direct_main' ] );
-						foreach( $menu_items as $menu_item ) {
-							if(  $menu_item->object == $direct_queried_object->post_type && ( $menu_item->object_id == $direct_queried_object->ID || de_is_language_post( $menu_item->object_id, $direct_queried_object->ID ) ) ) {
-								$parent_menu_id = $menu_item->menu_item_parent;
-								break;
+						if ( $menu_items ) {
+							foreach( $menu_items as $menu_item ) {
+								if(  $menu_item->object == $direct_queried_object->post_type && ( $menu_item->object_id == $direct_queried_object->ID || de_is_language_post( $menu_item->object_id, $direct_queried_object->ID ) ) ) {
+									$parent_menu_id = $menu_item->menu_item_parent;
+									break;
+								}
 							}
-						}
-						foreach( $menu_items as $menu_item ) {
-							if( $menu_item->ID == $parent_menu_id && $menu_item->object == 'page' ) {
-								$redirect = get_permalink( $menu_item->object_id );
-								break;
+							foreach( $menu_items as $menu_item ) {
+								if( $menu_item->ID == $parent_menu_id && $menu_item->object == 'page' ) {
+									$redirect = get_permalink( $menu_item->object_id );
+									break;
+								}
 							}
 						}
 					}

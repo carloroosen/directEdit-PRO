@@ -190,11 +190,11 @@ function de_custom_jobs_form_validate( $post ) {
 		$p = get_post( ( int ) $_REQUEST[ 'item' ] );
 
 		if ( $post->ID == get_option( $p->post_type . '_job_application' ) ) {
-			$de_webform_values[ 'job' ] = $wpdb->escape( $_POST[ 'job' ] );
-			$de_webform_values[ 'name' ] = $wpdb->escape( $_POST[ 'name' ] );
-			$de_webform_values[ 'email' ] = $wpdb->escape( $_POST[ 'email' ] );
-			$de_webform_values[ 'phone' ] = $wpdb->escape( $_POST[ 'phone' ] );
-			$de_webform_values[ 'comments' ] = $wpdb->escape( $_POST[ 'comments' ] );
+			$de_webform_values[ 'job' ] = sanitize_text_field( $_POST[ 'job' ] );
+			$de_webform_values[ 'name' ] = sanitize_text_field( $_POST[ 'name' ] );
+			$de_webform_values[ 'email' ] = sanitize_text_field( $_POST[ 'email' ] );
+			$de_webform_values[ 'phone' ] = sanitize_text_field( $_POST[ 'phone' ] );
+			$de_webform_values[ 'comments' ] = sanitize_text_field( $_POST[ 'comments' ] );
 			
 			if( empty( $de_webform_values[ 'job' ] ) )
 				$de_webform_errors[ 'job' ] = __( 'Job field is empty.' );

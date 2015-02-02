@@ -118,184 +118,156 @@ function de_adjust_menus() {
 }
 
 function de_plugin_menu() {
+	add_options_page( __( 'Direct Edit Options', 'direct-edit' ), __( 'Direct Edit', 'direct-edit' ), 'manage_options', 'direct-edit', 'de_plugin_page' );
+}
+
+function de_plugin_page() {
 	global $wpdb;
 	global $options;
 	global $user_ID;
 
-	if ( basename( $_SERVER['SCRIPT_FILENAME'] ) == 'plugins.php' && isset( $_GET['page'] ) && $_GET['page'] == 'direct-edit' ) {
-		// Check permissions
-		if ( ! current_user_can( 'manage_options' ) )  {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', 'direct-edit' ) );
-		}
+	// Check permissions
+	if ( ! current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.', 'direct-edit' ) );
+	}
 
+	// Save options
+	if ( isset( $_REQUEST['action'] ) ) {
 		if ( get_option( 'de_options_custom_page_types' ) )
 			$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
 		else
 			$options = array();
 
-		if ( isset( $_REQUEST['action'] ) && 'automatic_updates' == $_REQUEST['action'] ) {
+		if ( 'automatic_updates' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_automatic_updates', '_de_nonce' );
+			
 			update_option( 'automatic_updates_key', $_POST[ 'automatic_updates_key' ] );
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create_theme' == $_REQUEST['action'] ) {
-			// Create theme dir
-			$target = get_theme_root() . '/' . sanitize_title( $_POST[ 'theme_name' ] );
-			if ( ! is_dir( $target ) ) {
-				umask( 0 );
-				$result = mkdir( $target, 0777 );
-				if ( ! $result ) {
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create_theme' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create_theme', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create_theme', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create_theme', 'theme_name' => sanitize_text_field( $_POST[ 'theme_name' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create_theme', 'theme_name' => sanitize_text_field( $_POST[ 'theme_name' ] ) ) );
+				return;
+			}
 
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$theme_name = sanitize_key( $_POST[ 'theme_name' ] );
+			$target = trailingslashit( implode( DIRECTORY_SEPARATOR, array( get_theme_root(), $theme_name ) ) );
+
+			// Create theme dir
+			if ( ! $wp_filesystem->is_dir( $target ) ) {
+				$wp_filesystem->mkdir( $target );
+
+				// Copy theme files
 				if ( empty( $_POST[ 'theme_child' ] ) ) {
-					// Copy theme files
 					// style.css
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/style.css' );
-					$template = str_replace( array( '{theme_name}' ), array( $_POST[ 'theme_name' ] ), $template );
-					$result = file_put_contents ( $target . '/style.css', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/style.css', 0777 );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/style.css' );
+					$template = str_replace( array( '{theme_name}' ), array( sanitize_text_field( $_POST[ 'theme_name' ] ) ), $template );
+					$wp_filesystem->put_contents( $target . 'style.css', $template );
+
 					// functions.php
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/functions.php' );
-					$result = file_put_contents ( $target . '/functions.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/functions.php', 0777 );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/functions.php' );
+					$wp_filesystem->put_contents( $target . 'functions.php', $template );
+
 					// Header, footer, front-page.php, home.php ( for blog page ), index.php
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/header.php' );
-					$result = file_put_contents ( $target . '/header.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/header.php', 0777 );
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/footer.php' );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/header.php' );
+					$wp_filesystem->put_contents( $target . 'header.php', $template );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/footer.php' );
 					$template = str_replace( array( '{year}' ), array( date( 'Y' ) ), $template );
-					$result = file_put_contents ( $target . '/footer.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/footer.php', 0777 );
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/front-page.php' );
-					$result = file_put_contents ( $target . '/front-page.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/front-page.php', 0777 );
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/home.php' );
-					$result = file_put_contents ( $target . '/home.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/home.php', 0777 );
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/page.php' );
-					$result = file_put_contents ( $target . '/page.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/page.php', 0777 );
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/index.php' );
-					$result = file_put_contents ( $target . '/index.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/index.php', 0777 );
+					$wp_filesystem->put_contents( $target . 'footer.php', $template );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/front-page.php' );
+					$wp_filesystem->put_contents( $target . 'front-page.php', $template );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/home.php' );
+					$wp_filesystem->put_contents( $target . 'home.php', $template );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/page.php' );
+					$wp_filesystem->put_contents( $target . 'page.php', $template );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/index.php' );
+					$wp_filesystem->put_contents( $target . 'index.php', $template );
+
 					// 404.php
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/404.php' );
-					$result = file_put_contents ( $target . '/404.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/404.php', 0777 );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/404.php' );
+					$wp_filesystem->put_contents( $target . '404.php', $template );
 				} else {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/style-child.css' );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/style-child.css' );
 					$template_current = wp_get_theme();
-					$template = str_replace( array( '{theme_name}', '{template_name}', '{template_uri}' ), array( $_POST[ 'theme_name' ], $template_current->get( 'Template ' ), get_template_directory_uri() ), $template );
-					$result = file_put_contents ( $target . '/style.css', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/style.css', 0777 );
+					$template = str_replace( array( '{theme_name}', '{template_name}', '{template_uri}' ), array( sanitize_text_field( $_POST[ 'theme_name' ] ), $template_current->get( 'Template' ), get_template_directory_uri() ), $template );
+					$wp_filesystem->put_contents( $target . 'style.css', $template );
 				}
 				
 				// Create auxiliary dirs and copy login form template
-				umask( 0 );
-				$result = mkdir( $target . '/de_webform', 0777 );
-				if ( ! $result ) {
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
-				umask( 0 );
-				$result = mkdir( $target . '/snippets', 0777 );
-				if ( ! $result ) {
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-					die();
-				}
+				$wp_filesystem->mkdir( $target . 'de_webform' );
+				$wp_filesystem->mkdir( $target . 'snippets' );
 				if ( get_option( 'de_wp_login_redirect' ) ) {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/de_webform/log-in.php' );
-					$result = file_put_contents ( $target . '/de_webform/log-in.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/de_webform/log-in.php', 0777 );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/de_webform/log-in.php' );
+					$wp_filesystem->put_contents( $target . 'de_webform/log-in.php', $template );
 				}
 				
 				// Create custom page templates
 				foreach ( $options as $option ) {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/archive-custom_post_type.php' );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/archive-custom_post_type.php' );
 					$template = str_replace( array( '{name}' ), array( sanitize_title( $option->name ) ), $template );
-					$result = file_put_contents ( $target . '/archive-de_' . sanitize_title( $option->name ) . '.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/archive-de_' . sanitize_title( $option->name ) . '.php', 0777 );
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/single-custom_post_type.php' );
-					$result = file_put_contents ( $target . '/single-de_' . sanitize_title( $option->name ) . '.php', $template );
-					if ( $result === false ) {
-						wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_theme' ) );
-						die();
-					}
-					chmod( $target . '/single-de_' . sanitize_title( $option->name ) . '.php', 0777 );
+					$wp_filesystem->put_contents( $target . 'archive-de_' . sanitize_title( $option->name ) . '.php', $template );
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/single-custom_post_type.php' );
+					$wp_filesystem->put_contents( $target . 'single-de_' . sanitize_title( $option->name ) . '.php', $template );
 				}
 				
 				// Switch theme
-				switch_theme( sanitize_title( $_POST[ 'theme_name' ] ) );
+				switch_theme( $theme_name );
 			}
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'copy_files' == $_REQUEST['action'] ) {
-			if ( ! file_exists( get_stylesheet_directory() . '/direct-edit' ) ) {
-				$result = de_copy( DIRECT_PATH . 'theme', get_stylesheet_directory() . '/direct-edit' );
-				if ( ! $result ) {
-					@de_rmdir( get_stylesheet_directory() . '/direct-edit' );
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=copy_files' ) );
-					die();
-				}
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'copy_files' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_copy_files', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_copy_files', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'copy_files' ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'copy_files' ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$theme_path = trailingslashit( get_stylesheet_directory() );
+
+			if ( ! file_exists( $theme_path . 'direct-edit' ) ) {
+				de_copy( $plugin_path . 'theme', $theme_path . 'direct-edit' );
 			}
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'remove_files' == $_REQUEST['action'] ) {
-			if ( file_exists( get_stylesheet_directory() . '/direct-edit' ) ) {
-				de_rmdir( get_stylesheet_directory() . '/direct-edit' );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'remove_files' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_remove_files', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_remove_files', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'remove_files' ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'remove_files' ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$theme_path = trailingslashit( get_stylesheet_directory() );
+
+			if ( $wp_filesystem->exists( $theme_path . 'direct-edit' ) ) {
+				de_rmdir( $theme_path . 'direct-edit' );
 			}
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create_pages' == $_REQUEST['action'] ) {
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create_pages' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create_pages', '_de_nonce' );
+			
 			update_option( 'show_on_front', 'page' );
 			
 			// Create home page
@@ -368,53 +340,74 @@ function de_plugin_menu() {
 			
 			update_option( 'page_for_posts', $newPostId );
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create_front_page_template' == $_REQUEST['action'] ) {
-			if( is_dir( DIRECT_PATH . 'pro/custom/front-page/' . $_REQUEST[ 'template_name' ] ) ) {
-				$target = get_stylesheet_directory();
-				if ( ! file_exists( $target . '/custom/front-page' ) ) {
-					umask( 0 );
-					mkdir( $target . '/custom/front-page', 0777 );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create_front_page_template' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create_front_page_template', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create_front_page_template', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create_front_page_template', 'template_name' => sanitize_text_field( $_REQUEST[ 'template_name' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create_front_page_template', 'template_name' => sanitize_text_field( $_REQUEST[ 'template_name' ] ) ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+			
+			if( $wp_filesystem->exists( $plugin_path . 'pro/custom/front-page/' . sanitize_text_field( $_REQUEST[ 'template_name' ] ) ) ) {
+				if ( ! $wp_filesystem->exists( $target . 'custom' ) ) {
+					$wp_filesystem->mkdir( $target . 'custom' );
 				}
-				if ( file_exists( $target . '/custom/front-page' ) ) {
-					de_rmdir( $target . '/custom/front-page' );
+				if ( $wp_filesystem->exists( $target . 'custom/front-page' ) ) {
+					de_rmdir( $target . 'custom/front-page' );
 				}
-				$result = de_copy( DIRECT_PATH . 'pro/custom/front-page/' . $_REQUEST[ 'template_name' ], $target . '/custom/front-page' );
-				if ( ! $result ) {
-					@de_rmdir( $target . '/custom/front-page' );
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_front_page_template' ) );
-					die();
-				}
+				$wp_filesystem->mkdir( $target . 'custom/front-page' );
+				de_copy( $plugin_path . 'pro/custom/front-page/' . sanitize_text_field( $_REQUEST[ 'template_name' ] ), $target . 'custom/front-page' );
 				
 				// Setup hook
-				if ( file_exists( $target . '/custom/front-page/functions.php' ) ) {
-					include $target . '/custom/front-page/functions.php';
-					do_action( 'de_custom_front_page_' . $_REQUEST[ 'template_name' ] . '_setup' );
+				if ( $wp_filesystem->exists( $target . 'custom/front-page/functions.php' ) ) {
+					include $target . 'custom/front-page/functions.php';
+					do_action( 'de_custom_front_page_' . sanitize_text_field( $_REQUEST[ 'template_name' ] ) . '_setup' );
 				}
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create' == $_REQUEST['action'] ) {
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$theme_path = trailingslashit( get_stylesheet_directory() );
+
 			$option = new stdClass();
-			$option->name = $wpdb->escape( $_POST[ 'custom_page_type' ] );
+			$option->name = sanitize_text_field( $_POST[ 'custom_page_type' ] );
 			if ( empty( $options[ $option->name ] ) ) {
 				$options[ $option->name ] = $option;
 				
-				if ( ! file_exists( get_stylesheet_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php' ) ) {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/archive-custom_post_type.php' );
-					$template = str_replace( array( '{name}' ), array( sanitize_title( $option->name ) ), $template );
-					file_put_contents ( get_stylesheet_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php', $template );
-					chmod( get_stylesheet_directory() . '/archive-de_' . sanitize_title( $option->name ) . '.php', 0777 );
+				if ( ! $wp_filesystem->exists( $theme_path . 'archive-de_' . sanitize_key( $option->name ) . '.php' ) ) {
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/archive-custom_post_type.php' );
+					$wp_filesystem->put_contents( $theme_path . 'archive-de_' . sanitize_key( $option->name ) . '.php', $template );
 				}
-				if ( ! file_exists( get_stylesheet_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php' ) ) {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/single-custom_post_type.php' );
-					file_put_contents ( get_stylesheet_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php', $template );
-					chmod( get_stylesheet_directory() . '/single-de_' . sanitize_title( $option->name ) . '.php', 0777 );
+				if ( ! $wp_filesystem->exists( $theme_path . 'single-de_' . sanitize_key( $option->name ) . '.php' ) ) {
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/single-custom_post_type.php' );
+					$wp_filesystem->put_contents ( $theme_path . 'single-de_' . sanitize_key( $option->name ) . '.php', $template );
 				}
 
 				// Create list page
 				$newPost = array(
-					'post_title' => __( ucfirst( $option->name ), 'direct-edit' ),
+					'post_title' => __( ucfirst( sanitize_title( $option->name ) ), 'direct-edit' ),
 					'post_content' => '',
 					'post_status' => 'publish',
 					'post_date' => date('Y-m-d H:i:s'),
@@ -424,8 +417,8 @@ function de_plugin_menu() {
 				);
 
 				$newPostId = wp_insert_post( $newPost );
-				De_Url::register_url( $newPostId, sanitize_title( __( strtolower( $option->name ), 'direct-edit' ) ) );
-				update_option( 'de_page_for_de_' . sanitize_title( $option->name ), $newPostId );
+				De_Url::register_url( $newPostId, sanitize_key( $option->name ) );
+				update_option( 'de_page_for_de_' . sanitize_key( $option->name ), $newPostId );
 
 				if ( De_Language_Wrapper::has_multilanguage() ) {
 					De_Language_Wrapper::set_post_language( $newPostId, De_Language_Wrapper::get_default_language() );
@@ -437,20 +430,20 @@ function de_plugin_menu() {
 						
 						$data = array(
 							'ID' => $lang_post->ID,
-							'post_title' => __( ucfirst( $option->name ), 'direct-edit' ),
-							'post_name' => sanitize_title( __( strtolower( $option->name ), 'direct-edit' ) )
+							'post_title' => __( ucfirst( sanitize_title( $option->name ) ), 'direct-edit' ),
+							'post_name' => sanitize_key( $option->name )
 						);
 						wp_update_post( $data );
 
-						De_Url::register_url( $lang_post->ID, sanitize_title( __( strtolower( $option->name ), 'direct-edit' ) ) );
+						De_Url::register_url( $lang_post->ID, sanitize_key( $option->name ) );
 						
-						De_Language_Wrapper::de_post_type_add( 'de_' . sanitize_title( $option->name ) );
+						De_Language_Wrapper::de_post_type_add( 'de_' . sanitize_key( $option->name ) );
 					}
 				}
 
 				// Update rewrite rules
 				foreach( $options as $option ) {
-					register_post_type( 'de_' . sanitize_title( $option->name ),
+					register_post_type( 'de_' . sanitize_key( $option->name ),
 						array(
 							'labels' => array(
 								'name' => __( ucfirst( $option->name ), 'direct-edit' )
@@ -458,7 +451,7 @@ function de_plugin_menu() {
 							'public' => true,
 							'hierarchical' => true,
 							'supports' => array( 'title', 'editor', 'page-attributes' ),
-							'rewrite' => array( 'slug' => sanitize_title( $option->name ) ),
+							'rewrite' => array( 'slug' => sanitize_key( $option->name ) ),
 							'has_archive' => true
 						)
 					);
@@ -469,45 +462,69 @@ function de_plugin_menu() {
 				update_option( 'de_options_custom_page_types', base64_encode( serialize( $options ) ) );
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create_template' == $_REQUEST['action'] ) {
-			$option = $wpdb->escape( $_REQUEST[ 'custom_page_type' ] );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create_template' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create_template', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create_template', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create_template', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ), 'template_name' => sanitize_text_field( $_POST[ 'template_name' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create_template', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ), 'template_name' => sanitize_text_field( $_POST[ 'template_name' ] ) ) );
+				return;
+			}
 
-			if( ! empty( $options[ $option ] ) && is_dir( DIRECT_PATH . 'pro/custom/' . $_REQUEST[ 'template_name' ] ) ) {
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+
+			$option = sanitize_text_field( $_REQUEST[ 'custom_page_type' ] );
+
+			if( ! empty( $options[ $option ] ) && $wp_filesystem->is_dir( $plugin_path . 'pro/custom/' . $option ) ) {
 				$option = $options[ $option ];
 
 				$target = get_stylesheet_directory();
-				if ( ! file_exists( $target . '/custom' ) ) {
-					umask( 0 );
-					mkdir( $target . '/custom', 0777 );
+				if ( ! $wp_filesystem->exists( $target . 'custom' ) ) {
+					$wp_filesystem->mkdir( $target . 'custom' );
 				}
-				if ( file_exists( $target . '/custom/' . sanitize_title( $option->name ) ) ) {
-					de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
+				if ( $wp_filesystem->exists( $target . 'custom/' . sanitize_key( $option->name ) ) ) {
+					de_rmdir( $target . 'custom/' . sanitize_key( $option->name ) );
 				}
-				$result = de_copy( DIRECT_PATH . 'pro/custom/' . $_REQUEST[ 'template_name' ], $target . '/custom/' . sanitize_title( $option->name ) );
-				if ( ! $result ) {
-					@de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_template' ) );
-					die();
-				}
+				de_copy( $plugin_path . 'pro/custom/' . sanitize_key( $_REQUEST[ 'template_name' ] ), $target . 'custom/' . sanitize_key( $option->name ) );
 				
 				// Setup hook
-				if ( file_exists( $target . '/custom/' . sanitize_title( $option->name ) . '/functions.php' ) ) {
-					include $target . '/custom/' . sanitize_title( $option->name ) . '/functions.php';
-					do_action( 'de_custom_' . $_REQUEST[ 'template_name' ] . '_setup', sanitize_title( $option->name ) );
+				if ( file_exists( $target . 'custom/' . sanitize_key( $option->name ) . '/functions.php' ) ) {
+					include $target . 'custom/' . sanitize_key( $option->name ) . '/functions.php';
+					do_action( 'de_custom_' . sanitize_key( $_REQUEST[ 'template_name' ] ) . '_setup', sanitize_key( $option->name ) );
 				}
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'delete' == $_REQUEST['action'] ) {
-			$option = $wpdb->escape( $_REQUEST[ 'custom_page_type' ] );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'delete' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_delete', '_de_nonce' );
+
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_delete', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'delete', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'delete', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+
+			$option = sanitize_text_field( $_REQUEST[ 'custom_page_type' ] );
 
 			if( ! empty( $options[ $option ] ) ) {
 				$option = $options[ $option ];
 
-				$id = get_option( 'de_page_for_de_' . sanitize_title( $option->name ) );
+				$id = get_option( 'de_page_for_de_' . sanitize_key( $option->name ) );
 
-				delete_option( 'de_page_for_de_' . sanitize_title( $option->name ) );
+				delete_option( 'de_page_for_de_' . sanitize_key( $option->name ) );
 				if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $id ) ) {
 					foreach( De_Language_Wrapper::get_language_posts( $id ) as $lang_post ) {
 						wp_delete_post( $lang_post->ID, true );
@@ -516,10 +533,9 @@ function de_plugin_menu() {
 					wp_delete_post( $id, true );
 				}
 
-				
 				$args = array(
 					'numberposts' => -1,
-					'post_type' =>'de_' . sanitize_title( $option->name )
+					'post_type' =>'de_' . sanitize_key( $option->name )
 				);
 				$posts = get_posts( $args );
 				if ( is_array( $posts ) ) {
@@ -532,22 +548,37 @@ function de_plugin_menu() {
 				update_option( 'de_options_custom_page_types', base64_encode( serialize( $options ) ) );
 				
 				$target = get_stylesheet_directory();
-				if ( file_exists( $target . '/custom/' . sanitize_title( $option->name ) ) ) {
-					de_rmdir( $target . '/custom/' . sanitize_title( $option->name ) );
+				if ( $wp_filesystem->exists( $target . 'custom/' . sanitize_key( $option->name ) ) ) {
+					de_rmdir( $target . 'custom/' . sanitize_key( $option->name ) );
 				}
 
 				if ( De_Language_Wrapper::has_multilanguage() ) {
-					De_Language_Wrapper::de_post_type_delete( 'de_' . sanitize_title( $option->name ) );
+					De_Language_Wrapper::de_post_type_delete( 'de_' . sanitize_key( $option->name ) );
 				}
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create_webform' == $_REQUEST['action'] ) {
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create_webform' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create_webform', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create_webform', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create_webform', 'custom_webform_name' => sanitize_text_field( $_POST[ 'custom_webform_name' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create_webform', 'custom_webform_name' => sanitize_text_field( $_POST[ 'custom_webform_name' ] ) ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+			
 			if ( post_type_exists( 'de_webform' ) ) {
-				$title = $wpdb->escape( $_POST[ 'custom_webform_name' ] );
+				$title = sanitize_text_field( $_POST[ 'custom_webform_name' ] );
 				
 				$webformPost = array(
-					'post_title' => $title,
+					'post_title' => __( ucfirst( sanitize_title( $title ) ), 'direct-edit' ),
 					'post_content' => '',
 					'post_status' => 'publish',
 					'post_date' => date('Y-m-d H:i:s'),
@@ -557,7 +588,7 @@ function de_plugin_menu() {
 				);
 
 				$webformPostId = wp_insert_post( $webformPost );
-				$slug = De_Url::register_url( $webformPostId, sanitize_title( $title ) );
+				$slug = De_Url::register_url( $webformPostId, sanitize_key( $title ) );
 				
 				update_post_meta( $webformPostId, 'de_webform_template', 'de_webform/' . $slug . '.php' );
 				update_post_meta( $webformPostId, 'de_admin_email_from', get_option( 'admin_email' ) );
@@ -576,11 +607,11 @@ function de_plugin_menu() {
 						$data = array(
 							'ID' => $lang_post->ID,
 							'post_title' => $title,
-							'post_name' => sanitize_title( $title )
+							'post_name' => sanitize_key( $title )
 						);
 						wp_update_post( $data );
 
-						De_Url::register_url( $lang_post->ID, sanitize_title( $title ) );
+						De_Url::register_url( $lang_post->ID, sanitize_key( $title ) );
 
 						update_post_meta( $lang_post->ID, 'de_webform_template', 'de_webform/' . $slug . '.php' );
 						update_post_meta( $lang_post->ID, 'de_success_page', "/$lang/" );
@@ -591,57 +622,78 @@ function de_plugin_menu() {
 					update_post_meta( $webformPostId, 'de_success_page', '/' );
 				}
 
-				// Check login form template
-				$target = get_stylesheet_directory();
-
 				// Create auxiliary dir and copy form template
-				if ( ! file_exists( $target . '/de_webform' ) ) {
-					umask( 0 );
-					mkdir( $target . '/de_webform', 0777 );
+				if ( ! $wp_filesystem->exists( $target . 'de_webform' ) ) {
+					$wp_filesystem->mkdir( $target . 'de_webform' );
 				}
-				if ( ! file_exists( $target . '/de_webform/' . $slug . '.php' ) ) {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/single-de_webform.php' );
+				if ( ! $wp_filesystem->exists( $target . 'de_webform/' . $slug . '.php' ) ) {
+					$template = file_get_contents( $plugin_path . 'pro/template/single-de_webform.php' );
 					$template = str_replace( array( '{title}' ), array( $title ), $template );
-					file_put_contents ( $target . '/de_webform/' . $slug . '.php', $template );
-					chmod( $target . '/de_webform/' . $slug . '.php', 0777 );
+					$wp_filesystem->put_contents( $target . 'de_webform/' . $slug . '.php', $template );
 				}
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'create_webform_template' == $_REQUEST['action'] ) {
-			$webform = get_post( ( int ) $_REQUEST[ 'webform_id' ] );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'create_webform_template' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_create_webform_template', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create_webform_template', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create_webform_template', 'webform_id' => sanitize_text_field( $_POST[ 'webform_id' ] ), 'template_name' => sanitize_text_field( $_POST[ 'template_name' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create_webform_template', 'webform_id' => sanitize_text_field( $_POST[ 'webform_id' ] ), 'template_name' => sanitize_text_field( $_POST[ 'template_name' ] ) ) );
+				return;
+			}
 
-			if ( ! empty( $webform ) && $webform->post_type == 'de_webform' && is_dir( DIRECT_PATH . 'pro/de_webform/custom/' . $_REQUEST[ 'template_name' ] ) ) {
-				$target = get_stylesheet_directory();
-				if ( ! file_exists( $target . '/de_webform/custom' ) ) {
-					umask( 0 );
-					mkdir( $target . '/de_webform/custom', 0777 );
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+
+			$webform = get_post( intval( $_REQUEST[ 'webform_id' ] ) );
+
+			if ( ! empty( $webform ) && $webform->post_type == 'de_webform' && $wp_filesystem->is_dir( $plugin_path . 'pro/de_webform/custom/' . sanitize_key( $_REQUEST[ 'template_name' ] ) ) ) {
+				if ( ! $wp_filesystem->exists( $target . 'de_webform' ) ) {
+					$wp_filesystem->mkdir( $target . 'de_webform' );
 				}
-				if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name ) ) {
-					de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
+				if ( ! $wp_filesystem->exists( $target . 'de_webform/custom' ) ) {
+					$wp_filesystem->mkdir( $target . 'de_webform/custom' );
 				}
-				$result = de_copy( DIRECT_PATH . 'pro/de_webform/custom/' . $_REQUEST[ 'template_name' ], $target . '/de_webform/custom/' . $webform->post_name );
-				if ( ! $result ) {
-					@de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
-					wp_redirect( admin_url( '/plugins.php?page=direct-edit&error=create_webform_template' ) );
-					die();
+				if ( $wp_filesystem->exists( $target . 'de_webform/custom/' . $webform->post_name ) ) {
+					de_rmdir( $target . 'de_webform/custom/' . $webform->post_name );
 				}
+				de_copy( $plugin_path . 'pro/de_webform/custom/' . sanitize_key( $_REQUEST[ 'template_name' ] ), $target . 'de_webform/custom/' . $webform->post_name );
 				
 				// Setup hook
-				if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name . '/functions.php' ) ) {
-					include $target . '/de_webform/custom/' . $webform->post_name . '/functions.php';
-					do_action( 'de_webform_custom_' . $_REQUEST[ 'template_name' ] . '_setup', $webform->post_name );
+				if ( $wp_filesystem->exists( $target . 'de_webform/custom/' . $webform->post_name . '/functions.php' ) ) {
+					include $target . 'de_webform/custom/' . $webform->post_name . '/functions.php';
+					do_action( 'de_webform_custom_' . sanitize_key( $_REQUEST[ 'template_name' ] ) . '_setup', $webform->post_name );
 				}
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'delete_webform' == $_REQUEST['action'] ) {
-			$webformPostId = ( int ) $_REQUEST[ 'post' ];
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'delete_webform' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_delete_webform', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_delete_webform', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'delete_webform', 'post' => sanitize_text_field( $_POST[ 'post' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'delete_webform', 'post' => sanitize_text_field( $_POST[ 'post' ] ) ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+			
+			$webformPostId = intval( $_REQUEST[ 'post' ] );
 			$webform = get_post( $webformPostId );
 			
 			$target = get_stylesheet_directory();
-			if ( file_exists( $target . '/de_webform/custom/' . $webform->post_name ) ) {
-				de_rmdir( $target . '/de_webform/custom/' . $webform->post_name );
+			if ( $wp_filesystem->exists( $target . 'de_webform/custom/' . $webform->post_name ) ) {
+				de_rmdir( $target . 'de_webform/custom/' . $webform->post_name );
 			}
 
 			if ( $webformPostId && $webform && $webform->post_type == 'de_webform' ) {
@@ -654,24 +706,41 @@ function de_plugin_menu() {
 				}
 			}
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'wp_hooks' == $_REQUEST['action'] ) {
-			$options = $wpdb->escape( $_REQUEST[ 'wp_hooks' ] );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'wp_hooks' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_wp_hooks', '_de_nonce' );
+			
+			$options = array_map( 'sanitize_text_field', ( array ) $_REQUEST[ 'wp_hooks' ] );
 			update_option( 'de_options_wp_hooks', base64_encode( serialize( $options ) ) );
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_options' == $_REQUEST[ 'action' ] ) {
-			update_option( 'de_wp_login_redirect', $_REQUEST[ 'wp_login_redirect' ] );
-			update_option( 'de_tweak_backend', $_REQUEST[ 'tweak_backend' ] );
-			update_option( 'de_tweak_frontend', $_REQUEST[ 'tweak_frontend' ] );
-			update_option( 'de_disable_backend_editor', $_REQUEST[ 'disable_backend_editor' ] );
-			update_option( 'de_text_validation', $_REQUEST[ 'text_validation' ] );
-			update_option( 'de_smart_urls', $_REQUEST[ 'smart_urls' ] );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'de_options' == $_REQUEST[ 'action' ] ) {
+			check_admin_referer( 'de_nonce_de_options', '_de_nonce' );
+			
+			update_option( 'de_wp_login_redirect', sanitize_text_field( $_REQUEST[ 'wp_login_redirect' ] ) );
+			update_option( 'de_tweak_backend', sanitize_text_field( $_REQUEST[ 'tweak_backend' ] ) );
+			update_option( 'de_tweak_frontend', sanitize_text_field( $_REQUEST[ 'tweak_frontend' ] ) );
+			update_option( 'de_disable_backend_editor', sanitize_text_field( $_REQUEST[ 'disable_backend_editor' ] ) );
+			update_option( 'de_text_validation', sanitize_text_field( $_REQUEST[ 'text_validation' ] ) );
+			update_option( 'de_smart_urls', sanitize_text_field( $_REQUEST[ 'smart_urls' ] ) );
 			
 			// Handle login form
-			if( $_REQUEST['wp_login_redirect'] ) {
+			if( sanitize_text_field( $_REQUEST['wp_login_redirect'] ) ) {
 				// Create log in form
 				if ( post_type_exists( 'de_webform' ) && ( ! get_option( 'de_login_form' ) || ! get_post( get_option( 'de_login_form' ) ) || get_post_type( get_option( 'de_login_form' ) ) != 'de_webform' ) ) {
+					$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_de_options', '_de_nonce' );
+					if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'de_options', 'wp_login_redirect' => sanitize_text_field( $_POST[ 'wp_login_redirect' ] ), 'tweak_backend' => sanitize_text_field( $_POST[ 'tweak_backend' ] ), 'tweak_frontend' => sanitize_text_field( $_POST[ 'tweak_frontend' ] ), 'disable_backend_editor' => sanitize_text_field( $_POST[ 'disable_backend_editor' ] ), 'text_validation' => sanitize_text_field( $_POST[ 'text_validation' ] ), 'smart_urls' => sanitize_text_field( $_POST[ 'smart_urls' ] ) ) ) ) ) {
+						return;
+					}
+					if ( ! WP_Filesystem( $creds ) ) {
+						request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'de_options', 'wp_login_redirect' => sanitize_text_field( $_POST[ 'wp_login_redirect' ] ), 'tweak_backend' => sanitize_text_field( $_POST[ 'tweak_backend' ] ), 'tweak_frontend' => sanitize_text_field( $_POST[ 'tweak_frontend' ] ), 'disable_backend_editor' => sanitize_text_field( $_POST[ 'disable_backend_editor' ] ), 'text_validation' => sanitize_text_field( $_POST[ 'text_validation' ] ), 'smart_urls' => sanitize_text_field( $_POST[ 'smart_urls' ] ) ) );
+						return;
+					}
+
+					global $wp_filesystem;
+					$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+					$target = trailingslashit( get_stylesheet_directory() );
+
 					$args = array(
 						'meta_query' => array(
 							array(
@@ -731,19 +800,14 @@ function de_plugin_menu() {
 					}
 					
 					update_option( 'de_login_form', $loginPostId );
-					
-					// Check login form template
-					$target = get_stylesheet_directory();
 
 					// Create auxiliary dir and copy login form template
-					if ( ! file_exists( $target . '/de_webform' ) ) {
-						umask( 0 );
-						mkdir( $target . '/de_webform', 0777 );
+					if ( ! $wp_filesystem->exists( $target . 'de_webform' ) ) {
+						$wp_filesystem->mkdir( $target . 'de_webform' );
 					}
-					if ( ! file_exists( $target . '/de_webform/log-in.php' ) ) {
-						$template = file_get_contents( DIRECT_PATH . 'pro/template/de_webform/log-in.php' );
-						file_put_contents ( $target . '/de_webform/log-in.php', $template );
-						chmod( $target . '/de_webform/log-in.php', 0777 );
+					if ( ! $wp_filesystem->exists( $target . 'de_webform/log-in.php' ) ) {
+						$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/de_webform/log-in.php' );
+						$wp_filesystem->put_contents ( $target . 'de_webform/log-in.php', $template );
 					}
 				}
 			} else {
@@ -762,13 +826,30 @@ function de_plugin_menu() {
 				}
 			}
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_seo' == $_REQUEST[ 'action' ] ) {
-			update_option( 'de_use_seo', $_REQUEST[ 'use_seo' ] );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'de_seo' == $_REQUEST[ 'action' ] ) {
+			check_admin_referer( 'de_nonce_de_seo', '_de_nonce' );
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST[ 'action' ] ) && 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
-			update_option( 'de_menu_editor_enabled', $_REQUEST[ 'menu_editor_enabled' ] );
+			update_option( 'de_use_seo', sanitize_text_field( $_REQUEST[ 'use_seo' ] ) );
+
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
+			check_admin_referer( 'de_nonce_de_menu_editor', '_de_nonce' );
+			
+			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_de_menu_editor', '_de_nonce' );
+			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'de_menu_editor', 'menu_editor_enabled' => sanitize_text_field( $_POST[ 'menu_editor_enabled' ] ) ) ) ) ) {
+				return;
+			}
+			if ( ! WP_Filesystem( $creds ) ) {
+				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'de_menu_editor', 'menu_editor_enabled' => sanitize_text_field( $_POST[ 'menu_editor_enabled' ] ) ) );
+				return;
+			}
+
+			global $wp_filesystem;
+			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+			$target = trailingslashit( get_stylesheet_directory() );
+			
+			update_option( 'de_menu_editor_enabled', sanitize_text_field( $_REQUEST[ 'menu_editor_enabled' ] ) );
 			if ( get_option( 'de_menu_editor_enabled' ) ) {
 				foreach ( $_POST as $key => $value ) {
 					if ( $key == 'action' || $key == 'menu_editor_enabled' ) {
@@ -781,44 +862,26 @@ function de_plugin_menu() {
 				// Check menu edit page template
 				$target = get_stylesheet_directory();
 
-				if ( ! file_exists( $target . 'edit-menu.php' ) ) {
-					$template = file_get_contents( DIRECT_PATH . 'pro/template/edit-menu.php' );
-					file_put_contents ( $target . '/edit-menu.php', $template );
-					chmod( $target . '/edit-menu.php', 0777 );
+				if ( ! $wp_filesystem->exists( $target . 'edit-menu.php' ) ) {
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/edit-menu.php' );
+					$wp_filesystem->put_contents ( $target . 'edit-menu.php', $template );
 				}
 			}
 
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
-		} elseif ( isset( $_REQUEST['action'] ) && 'languages' == $_REQUEST['action'] ) {
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'languages' == $_REQUEST['action'] ) {
+			check_admin_referer( 'de_nonce_languages', '_de_nonce' );
+			
 			if ( De_Language_Wrapper::has_multilanguage() ) {
-				update_option( 'de_options_show_languages', serialize( $_POST[ 'show_languages' ] ) );
+				update_option( 'de_options_show_languages', serialize( array_map( 'sanitize_text_field', ( array ) $_POST[ 'show_languages' ] ) ) );
 			}
 			
-			wp_redirect( admin_url( '/plugins.php?page=direct-edit&saved=true' ) );
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
 		}
 	}
-	
-	add_plugins_page( 'Direct Edit Options', 'Direct Edit', 'manage_options', 'direct-edit', 'de_plugin_page' );
-}
 
-function de_plugin_page() {
-	global $wpdb;
-	global $options;
-	global $user_ID;
+	settings_errors();
 
-	// Check permissions
-	if ( ! current_user_can( 'manage_options' ) )  {
-		wp_die( __( 'You do not have sufficient permissions to access this page.', 'direct-edit' ) );
-	}
-
-	if ( isset( $_REQUEST['saved'] ) ) {
-		echo '<div id="message" class="updated fade"><p><strong> Settings saved.</strong></p></div>';
-	} elseif ( isset( $_REQUEST[ 'error' ] ) ) {
-		if ( $_REQUEST[ 'error' ] == 'copy_files' ) {
-			echo '<div id="message" class="updated fade"><p><strong> Settings could not be saved. Check folder permissions.</strong></p></div>';
-		}
-	}
-		
 	if ( get_option( 'de_options_custom_page_types' ) )
 		$options = unserialize( base64_decode( get_option( 'de_options_custom_page_types' ) ) );
 	else
@@ -845,13 +908,11 @@ function de_plugin_page() {
 	}
 	?>
 	<div class="wrap">
-		<div id="icon-themes" class="icon32">
-			<br>
-		</div>
-		<h2>Direct Edit <?php _e( 'Options', 'direct-edit' ); ?></h2>
+		<h2><?php _e( 'Direct Edit Options', 'direct-edit' ); ?></h2>
 		<h3><i><?php _e( 'automatic updates', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_automatic_updates', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="automatic_updates" />
 				<table border="0">
 					<tbody>
@@ -867,6 +928,7 @@ function de_plugin_page() {
 		<h3><?php _e( 'create theme', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_create_theme', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="create_theme" />
 				<table border="0">
 					<tbody>
@@ -885,6 +947,7 @@ function de_plugin_page() {
 		<h3><?php _e( 'copy files to current theme', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_copy_files', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="copy_files" />
 				<table border="0">
 					<tbody>
@@ -899,6 +962,7 @@ function de_plugin_page() {
 		<h3><?php _e( 'remove /direct-edit folder from theme', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_remove_files', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="remove_files" />
 				<table border="0">
 					<tbody>
@@ -916,6 +980,7 @@ function de_plugin_page() {
 		<h3><?php _e( 'create home and blog pages', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_create_pages', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="create_pages" />
 				<table border="0">
 					<tbody>
@@ -952,6 +1017,7 @@ function de_plugin_page() {
 								<td>
 									<?php $d->rewind(); ?>
 									<form method="post">
+										<?php wp_nonce_field( 'de_nonce_create_front_page_template', '_de_nonce' ); ?>
 										<input type="hidden" name="action" value="create_front_page_template" />
 										<select name="template_name">
 											<?php
@@ -985,7 +1051,7 @@ function de_plugin_page() {
 				<tbody>
 					<tr>
 						<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
-						<td><form method="post"><input type="hidden" name="action" value="create" /><input type="text" name="custom_page_type" id="custom_page_type" style="width: 240px;" /> <input type="submit" value="create" /></form></td>
+						<td><form method="post"><?php wp_nonce_field( 'de_nonce_create', '_de_nonce' ); ?><input type="hidden" name="action" value="create" /><input type="text" name="custom_page_type" id="custom_page_type" style="width: 240px;" /> <input type="submit" value="create" /></form></td>
 					</tr>
 					<tr>
 						<td></td>
@@ -1015,6 +1081,7 @@ function de_plugin_page() {
 													$d->rewind();
 													?>
 													<form method="post">
+														<?php wp_nonce_field( 'de_nonce_create_template', '_de_nonce' ); ?>
 														<input type="hidden" name="action" value="create_template" />
 														<input type="hidden" name="custom_page_type" value="<?php echo $option->name; ?>" />
 														<select name="template_name">
@@ -1039,7 +1106,7 @@ function de_plugin_page() {
 											?>
 										</td>
 										<td>
-											<input type="button" onclick="location.href='?page=direct-edit&action=delete&custom_page_type=<?php echo urlencode( $option->name ); ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
+											<input type="button" onclick="location.href='<?php echo wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit&action=delete&custom_page_type=' . urlencode( $option->name ), 'de_nonce_delete', '_de_nonce' ); ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
 										</td>
 									</tr>
 									<?php } ?>
@@ -1057,7 +1124,7 @@ function de_plugin_page() {
 				<tbody>
 					<tr>
 						<td style="width: 30px;"><?php _e( 'name', 'direct-edit' ); ?></td>
-						<td><form method="post"><input type="hidden" name="action" value="create_webform" /><input type="text" name="custom_webform_name" id="custom_webform_name" style="width: 240px;" /> <input type="submit" value="create" /></form></td>
+						<td><form method="post"><?php wp_nonce_field( 'de_nonce_create_webform', '_de_nonce' ); ?><input type="hidden" name="action" value="create_webform" /><input type="text" name="custom_webform_name" id="custom_webform_name" style="width: 240px;" /> <input type="submit" value="create" /></form></td>
 					</tr>
 					<tr>
 						<td></td>
@@ -1087,6 +1154,7 @@ function de_plugin_page() {
 													$d->rewind();
 													?>
 													<form method="post">
+														<?php wp_nonce_field( 'de_nonce_create_webform_template', '_de_nonce' ); ?>
 														<input type="hidden" name="action" value="create_webform_template" />
 														<input type="hidden" name="webform_id" value="<?php echo $webform->ID; ?>" />
 														<select name="template_name">
@@ -1111,7 +1179,7 @@ function de_plugin_page() {
 											?>
 										</td>
 										<td>
-											<input type="button" onclick="location.href='?page=direct-edit&action=delete_webform&post=<?php echo $webform->ID; ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
+											<input type="button" onclick="location.href='<?php echo wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit&action=delete_webform&post=' . $webform->ID, 'de_nonce_delete_webform', '_de_nonce' ); ?>'" value="<?php _e( 'remove', 'direct-edit' ); ?>" />
 										</td>
 									</tr>
 									<?php } ?>
@@ -1126,6 +1194,7 @@ function de_plugin_page() {
 		<h3><i><?php _e( 'hooks on standard wp-functions', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_wp_hooks', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="wp_hooks" />
 				<table border="0">
 					<tbody>
@@ -1148,6 +1217,7 @@ function de_plugin_page() {
 		<h3><i><?php _e( 'options', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_de_options', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="de_options" />
 				<table border="0">
 					<tbody>
@@ -1185,6 +1255,7 @@ function de_plugin_page() {
 		<h3><i><?php _e( 'SEO', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_de_seo', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="de_seo" />
 				<table border="0">
 					<tbody>
@@ -1214,6 +1285,7 @@ function de_plugin_page() {
 		<h3><?php _e( 'DirectEdit menu editor', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_de_menu_editor', '_de_nonce' ); ?>
 				<input type="hidden" name="action" value="de_menu_editor" />
 				<table border="0">
 					<tbody>
@@ -1259,6 +1331,7 @@ function de_plugin_page() {
 		<?php if ( De_Language_Wrapper::has_multilanguage() ) { ?>
 		<h3><i><?php _e( 'Show languages', 'direct-edit' ); ?></i></h3>
 		<form method="post">
+			<?php wp_nonce_field( 'de_nonce_languages', '_de_nonce' ); ?>
 			<input type="hidden" name="action" value="languages" />
 			<div class="inside">
 				<table width="100%" border="0">
