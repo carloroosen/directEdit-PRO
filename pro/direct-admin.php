@@ -378,33 +378,11 @@ function de_plugin_page() {
 		} elseif ( 'create' == $_REQUEST['action'] ) {
 			check_admin_referer( 'de_nonce_create', '_de_nonce' );
 			
-			$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create', '_de_nonce' );
-			if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) ) ) ) {
-				return;
-			}
-			if ( ! WP_Filesystem( $creds ) ) {
-				request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) );
-				return;
-			}
-
-			global $wp_filesystem;
-			$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
-			$theme_path = trailingslashit( get_stylesheet_directory() );
-
 			$option = new stdClass();
 			$option->name = sanitize_text_field( $_POST[ 'custom_page_type' ] );
 			if ( empty( $options[ $option->name ] ) ) {
 				$options[ $option->name ] = $option;
 				
-				if ( ! $wp_filesystem->exists( $theme_path . 'archive-de_' . sanitize_key( $option->name ) . '.php' ) ) {
-					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/archive-custom_post_type.php' );
-					$wp_filesystem->put_contents( $theme_path . 'archive-de_' . sanitize_key( $option->name ) . '.php', $template );
-				}
-				if ( ! $wp_filesystem->exists( $theme_path . 'single-de_' . sanitize_key( $option->name ) . '.php' ) ) {
-					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/single-custom_post_type.php' );
-					$wp_filesystem->put_contents ( $theme_path . 'single-de_' . sanitize_key( $option->name ) . '.php', $template );
-				}
-
 				// Create list page
 				$newPost = array(
 					'post_title' => __( ucfirst( sanitize_title( $option->name ) ), 'direct-edit' ),
@@ -460,6 +438,28 @@ function de_plugin_page() {
 
 				// Save de options
 				update_option( 'de_options_custom_page_types', base64_encode( serialize( $options ) ) );
+
+				$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_create', '_de_nonce' );
+				if ( false === ( $creds = request_filesystem_credentials( $url, '', false, get_stylesheet_directory(), array( 'action' => 'create', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) ) ) ) {
+					return;
+				}
+				if ( ! WP_Filesystem( $creds ) ) {
+					request_filesystem_credentials( $url, '', true, get_stylesheet_directory(), array( 'action' => 'create', 'custom_page_type' => sanitize_text_field( $_POST[ 'custom_page_type' ] ) ) );
+					return;
+				}
+
+				global $wp_filesystem;
+				$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), DIRECT_PATH );
+				$theme_path = trailingslashit( get_stylesheet_directory() );
+
+				if ( ! $wp_filesystem->exists( $theme_path . 'archive-de_' . sanitize_key( $option->name ) . '.php' ) ) {
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/archive-custom_post_type.php' );
+					$wp_filesystem->put_contents( $theme_path . 'archive-de_' . sanitize_key( $option->name ) . '.php', $template );
+				}
+				if ( ! $wp_filesystem->exists( $theme_path . 'single-de_' . sanitize_key( $option->name ) . '.php' ) ) {
+					$template = $wp_filesystem->get_contents( $plugin_path . 'pro/template/single-custom_post_type.php' );
+					$wp_filesystem->put_contents ( $theme_path . 'single-de_' . sanitize_key( $option->name ) . '.php', $template );
+				}
 			}
 
 			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
