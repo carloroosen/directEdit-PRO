@@ -797,6 +797,12 @@ function de_plugin_page() {
 						} else {
 							update_post_meta( $loginPostId, 'de_success_page', '/' );
 						}
+						
+						update_post_meta( $loginPostId, 'de_user_email_from', get_option( 'admin_email' ) );
+						update_post_meta( $loginPostId, 'de_user_email_to', '{email}' );
+						update_post_meta( $loginPostId, 'de_user_email_subject', __( 'Password recovery', 'direct-edit' ) );
+						update_post_meta( $loginPostId, 'de_user_email_body_html', 1 );
+						update_post_meta( $loginPostId, 'de_user_email_body', __( '<p>Click <a href="{link}">this link</a> to login on the website and to set a new password.</p>', 'direct-edit' ) );
 					}
 					
 					update_option( 'de_login_form', $loginPostId );

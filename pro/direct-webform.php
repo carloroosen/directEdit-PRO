@@ -246,19 +246,75 @@ function de_webform_setup( $post ) {
 	global $de_webform_search;
 	global $de_webform_replace;
 	global $de_webform_success_page;
+	global $wpdb;
 	
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
 		/*
-		 * If a user is logged in, he is redirected to the page with his settings
+		 * If wp-login form redirect switched off we do redirect to wp-login
 		 */
-		if ( $user_ID ) {
-			de_webform_conditional_redirect( home_url() );
+		if ( ! get_option( 'de_wp_login_redirect' ) ) {
+			wp_redirect( de_get_login_form_permalink() );
+			die();
 		}
 		
-		/*
-		 * Form default values
-		 */
-		$de_webform_values[ 'email' ] = '';
+		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
+			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
+				/*
+				 * Form default values
+				 */
+				$de_webform_values[ 'email' ] = '';
+
+				/*
+				 * If a user is logged in, he is redirected to the homepage
+				 */
+				if ( $user_ID ) {
+					de_webform_conditional_redirect( home_url() );
+				} else {
+					/*
+					 * If there is key & email params, we are looking for a user with the defined email and activation key
+					 * If the user exists, we perform login
+					 * If login form has Success page, we perform a redirect to it, else we perform a redirect to the homepage
+					 */
+					if( ! empty( $_REQUEST[ 'key' ] ) && ! empty( $_REQUEST[ 'email' ] ) ) {
+						$key = $_REQUEST[ 'key' ];
+						$email = $_REQUEST[ 'email' ];
+						$userData = $wpdb->get_row( $wpdb->prepare( "SELECT ID, user_login, user_email FROM $wpdb->users WHERE user_activation_key = %s AND user_email = %s", $key, $email ) );
+						if( ! empty( $userData ) ) {
+							$user = get_userdata( $userData->ID );
+							
+							wp_set_current_user( $userData->ID, $userData->user_login );
+							wp_set_auth_cookie( $userData->ID );
+							do_action( 'wp_login', $userData->user_login );
+
+							$wpdb->update( $wpdb->users, array( 'user_activation_key' => '' ), array( 'user_login' => $userData->user_login ) );
+							
+							/*
+							 * New password form redirect
+							 */
+							wp_redirect( add_query_arg( 'action', 'set-new-password', de_get_login_form_permalink() ) );
+							exit;
+						}
+					}
+				}
+			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
+				if ( ! $user_ID ) {
+					wp_redirect( de_get_login_form_permalink() );
+					die();
+				}
+			}
+		} else {
+			/*
+			 * Form default values
+			 */
+			$de_webform_values[ 'email' ] = '';
+
+			/*
+			 * If a user is logged in, he is redirected to the page with his settings
+			 */
+			if ( $user_ID ) {
+				de_webform_conditional_redirect( home_url() );
+			}
+		}
 	}
 }
 
@@ -269,13 +325,34 @@ function de_webform_validate( $post ) {
 	global $de_webform_values;
 	
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
-		$de_webform_values[ 'email' ] = sanitize_text_field( $_POST[ 'email' ] );
-		$password = sanitize_text_field( $_POST[ 'password' ] );
+		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
+			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
+				$de_webform_values[ 'email' ] = sanitize_text_field( $_POST[ 'email' ] );
 
-		if( empty( $de_webform_values[ 'email' ] ) || ! filter_var( $de_webform_values[ 'email' ], FILTER_VALIDATE_EMAIL ) || email_exists( $de_webform_values[ 'email' ] ) == false )
-			$de_webform_errors[ 'email' ] = __( 'You have no email specified.', 'direct-edit' );
-		if( empty( $password ) )
-			$de_webform_errors[ 'password' ] = __( 'You have no password specified.', 'direct-edit' );
+				if( empty( $de_webform_values[ 'email' ] ) || ! filter_var( $de_webform_values[ 'email' ], FILTER_VALIDATE_EMAIL ) || email_exists( $de_webform_values[ 'email' ] ) == false ) {
+					$de_webform_errors[ 'email' ] = __( 'Wrong email address.' );
+				}
+			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
+				$de_webform_values[ 'password_new' ] = sanitize_text_field( $_POST[ 'password_new' ] );
+				
+				if( empty( $de_webform_values[ 'password_new' ] ) ) {
+					$de_webform_errors[ 'password_new' ] = __( 'You have no password specified.', 'direct-edit' );
+				}
+				if( strlen( $de_webform_values[ 'password_new' ] ) < 6 ) {
+					$de_webform_errors[ 'password_new' ] = __( 'The password is too short.', 'direct-edit' );
+				}
+			}
+		} else {
+			$de_webform_values[ 'email' ] = sanitize_text_field( $_POST[ 'email' ] );
+			$password = sanitize_text_field( $_POST[ 'password' ] );
+
+			if( empty( $de_webform_values[ 'email' ] ) || ! filter_var( $de_webform_values[ 'email' ], FILTER_VALIDATE_EMAIL ) || email_exists( $de_webform_values[ 'email' ] ) == false ) {
+				$de_webform_errors[ 'email' ] = __( 'You have no email specified.', 'direct-edit' );
+			}
+			if( empty( $password ) ) {
+				$de_webform_errors[ 'password' ] = __( 'You have no password specified.', 'direct-edit' );
+			}
+		}
 	}
 }
 
@@ -286,28 +363,60 @@ function de_webform_action( $post ) {
 	global $de_webform_values;
 	global $de_webform_search;
 	global $de_webform_replace;
+	global $de_webform_success_message;
 	global $de_webform_success_page;
+	global $de_webform_use_user_email;
 	
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
-		$email = $de_webform_values[ 'email' ];
-		$password = sanitize_text_field( $_POST[ 'password' ] );
-		$user = get_user_by_email( $email );
-		$username = $user->user_login;
+		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
+			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
+				$email = $de_webform_values[ 'email' ];
+				$userData = get_user_by_email( $email );
+				$login = $userData->user_login;
 
-		$loginData[ 'user_login' ] = $username;  
-		$loginData[ 'user_password' ] = $password;  
-		$loginData[ 'remember' ] = false;  
+				/*
+				 * Generate an autologin key
+				 */
+				$key = wp_generate_password( 20, false );
+				$wpdb->update( $wpdb->users, array( 'user_activation_key' => $key ), array( 'user_login' => $login ) );
 
-		/*
-		 * Login attempt
-		 */
-		$userVerify = wp_signon( $loginData );   
+				/*
+				 * Email values
+				 */
+				$de_webform_search[] = '{link}';
+				$de_webform_replace[] = add_query_arg( array( 'action' => 'password-recovery', 'key' => urlencode( $key ), 'email' => urlencode( $email ) ), de_get_login_form_permalink() );
+				
+				$de_webform_success_page = '';
+				$de_webform_success_message = __( 'An email with a login link has been sent to {email}.', 'direct-edit' );
+				$de_webform_use_user_email = 1;
+			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
+				wp_set_password( $de_webform_values[ 'password_new' ], $user_ID );
+				
+				$de_webform_success_page = de_get_login_form_permalink();
+			}
+		} else {
+			$email = $de_webform_values[ 'email' ];
+			$password = sanitize_text_field( $_POST[ 'password' ] );
+			$user = get_user_by_email( $email );
+			$username = $user->user_login;
 
-		if ( is_wp_error( $userVerify ) ) {
-			$de_webform_errors[] = $userVerify->get_error_message();
+			$loginData[ 'user_login' ] = $username;  
+			$loginData[ 'user_password' ] = $password;  
+			$loginData[ 'remember' ] = false;  
+
+			/*
+			 * Login attempt
+			 */
+			$userVerify = wp_signon( $loginData );   
+
+			if ( is_wp_error( $userVerify ) ) {
+				$de_webform_errors[] = $userVerify->get_error_message();
+			}
+			
+			if ( current_user_can( 'edit_de_frontend' ) ) {
+				$de_webform_success_page = add_query_arg( 'v', time(), $de_webform_success_page );
+			}
 		}
-		
-		$de_webform_success_page = add_query_arg( 'v', time(), $de_webform_success_page );
 	}
 }
 
