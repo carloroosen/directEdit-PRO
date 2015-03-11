@@ -330,7 +330,7 @@ function de_webform_validate( $post ) {
 				$de_webform_values[ 'email' ] = sanitize_text_field( $_POST[ 'email' ] );
 
 				if( empty( $de_webform_values[ 'email' ] ) || ! filter_var( $de_webform_values[ 'email' ], FILTER_VALIDATE_EMAIL ) || email_exists( $de_webform_values[ 'email' ] ) == false ) {
-					$de_webform_errors[ 'email' ] = __( 'Wrong email address.' );
+					$de_webform_errors[ 'email' ] = __( 'Wrong email address.', 'direct-edit' );
 				}
 			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
 				$de_webform_values[ 'password_new' ] = sanitize_text_field( $_POST[ 'password_new' ] );
