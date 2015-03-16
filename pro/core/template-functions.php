@@ -14,7 +14,7 @@ $direct_walker = new De_Walker_Nav_Menu();
 // General-purpose function.
 // Possible field types: text, image, link, list, file
 // Possible $store values: postmeta, usermeta, option, wptitle, wpcontent, wpexcerpt
-// wp_title does not work with image, link, list and file.
+// wptitle does not work with image, link, list and file.
 function direct_editable( $type, $store, $settings = array(), $echo = true ) {
 	$result = '';
 	
@@ -117,9 +117,8 @@ function direct_bloginfo( $show, $echo = true, $post_id = null ) {
 	if ( ! $post_id && $direct_queried_object && $direct_queried_object->ID ) {
 		$post_id = $direct_queried_object->ID;
 	}
-	
-	$post = get_post( $post_id );
-	if ( $post ) {
+
+	if ( $post_id && $post = get_post( $post_id ) ) {
 		switch( $show ) {
 			case 'title':
 				$result = get_post_meta( $post_id, 'de_title', true );
