@@ -27,6 +27,7 @@ if ( ! empty( $de_webform_messages ) ) {
 			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
 		?>
 			<form method="post">
+				<input class="question" name="question" type="text">
 				<p>
 				<label for="email"><em>&nbsp;</em><?php _e( 'Email', 'direct-edit' ); ?></label>
 				<input id="email" name="email" type="email" class="required email" value="<?php echo esc_attr( $de_webform_values[ 'email' ] ); ?>" />

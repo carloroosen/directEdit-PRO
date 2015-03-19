@@ -723,6 +723,7 @@ function de_plugin_page() {
 			update_option( 'de_disable_backend_editor', sanitize_text_field( $_REQUEST[ 'disable_backend_editor' ] ) );
 			update_option( 'de_text_validation', sanitize_text_field( $_REQUEST[ 'text_validation' ] ) );
 			update_option( 'de_smart_urls', sanitize_text_field( $_REQUEST[ 'smart_urls' ] ) );
+			update_option( 'de_honeypot', sanitize_text_field( $_REQUEST[ 'honeypot' ] ) );
 			
 			// Handle login form
 			if( sanitize_text_field( $_REQUEST['wp_login_redirect'] ) ) {
@@ -1251,6 +1252,11 @@ function de_plugin_page() {
 								<?php } ?>
 							</td>
 						</tr>
+						<?php if ( post_type_exists( 'de_webform' ) ) { ?>
+						<tr>
+							<td><input type="hidden" name="honeypot" value="" /><label><input type="checkbox" name="honeypot" value="1"<?php echo ( get_option( 'de_honeypot' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'use honeypot captcha for DirectEdit webforms', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
 						<tr>
 							<td><input type="submit" value="save" /></td>
 						</tr>
