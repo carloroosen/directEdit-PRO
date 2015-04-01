@@ -261,7 +261,10 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						}
 					}
 					
-					$show = $_SESSION[ 'de_show_all' ];
+					$show = '';
+					if ( isset($_SESSION[ 'de_show_all' ]) ) {
+						$show = $_SESSION[ 'de_show_all' ];
+					}
 					$wp_admin_bar->add_menu( array(
 						'parent' => '',
 						'id' => 'show-all',

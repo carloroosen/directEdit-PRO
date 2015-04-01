@@ -17,7 +17,7 @@ class De_Snippet_List extends De_Snippet {
 		parent::__construct();
 	}
 	
-	public function snippet( De_Item_List $owner, $snippet, $list = null ) {
+	public function snippet( De_Item $owner, $snippet, $list = null ) {
 		// Nested snippets implementation
 		if ( $this->in_the_snippet ) {
 			$ls =  array( 'owner' => $this->owner, 'item_type' => $this->item_type, 'current_item' => $this->current_item, 'items' => $this->items );

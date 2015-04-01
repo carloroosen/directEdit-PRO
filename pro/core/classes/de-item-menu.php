@@ -17,7 +17,11 @@ class De_Item_Menu extends De_Item {
 		$this->settings[ 'directMenuParams' ] = $params;
 		
 		// Does menu exist?
-		$menu = wp_get_nav_menu_object( $params[ 'menu' ] );
+		$m = '';
+		if ( isset( $params[ 'menu' ] ) ) {
+			$m = $params[ 'menu' ];
+		}
+		$menu = wp_get_nav_menu_object( $m );
 		if ( ! $menu && $params[ 'theme_location' ] && ( $locations = get_nav_menu_locations() ) && isset( $locations[ $params[ 'theme_location' ] ] ) )
 			$menu = wp_get_nav_menu_object( $locations[ $params[ 'theme_location' ] ] );
 		if ( $menu && ! is_wp_error( $menu ) ) {
@@ -30,7 +34,7 @@ class De_Item_Menu extends De_Item {
 	}
 
 	// We don't need output_partial() for menus.
-	public function output() {
+	public function output( $content = null ) {
 		global $direct_walker;
 		
 		$params = $this->get_setting( 'directMenuParams' );

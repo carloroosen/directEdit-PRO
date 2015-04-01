@@ -2,7 +2,7 @@
 class De_Snippet_Image extends De_Snippet {
 	public $mode = 'public';
 	
-	public function snippet( De_Item_Image $owner, $snippet ) {
+	public function snippet( De_Item $owner, $snippet ) {
 		// No nested snippets
 		if ( $this->in_the_snippet ) {
 			return '';
