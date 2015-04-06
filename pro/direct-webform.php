@@ -372,7 +372,7 @@ function de_webform_action( $post ) {
 		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
 			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
 				$email = $de_webform_values[ 'email' ];
-				$userData = get_user_by_email( $email );
+				$userData = get_user_by( 'email', $email );
 				$login = $userData->user_login;
 
 				/*
@@ -398,7 +398,7 @@ function de_webform_action( $post ) {
 		} else {
 			$email = $de_webform_values[ 'email' ];
 			$password = sanitize_text_field( $_POST[ 'password' ] );
-			$user = get_user_by_email( $email );
+			$user = get_user_by( 'email', $email );
 			$username = $user->user_login;
 
 			$loginData[ 'user_login' ] = $username;  
@@ -483,14 +483,14 @@ function de_webform_process( $template ) {
 		$de_webform_success_page = get_post_meta( $postId, 'de_success_page', true );
 		$de_webform_success_message = get_post_meta( $postId, 'de_success_message', true );
 		$de_webform_use_admin_email = get_post_meta( $postId, 'de_use_admin_email', true );
-		$adminEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_admin_email_from', true ) );
+		$adminEmailFrom = get_post_meta( $postId, 'de_admin_email_from', true );
 		$adminEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
 		$adminEmailSubject = get_post_meta( $postId, 'de_admin_email_subject', true );
 		$adminEmailBodyHtml = get_post_meta( $postId, 'de_admin_email_body_html', true );
 		$adminEmailBody = get_post_meta( $postId, 'de_admin_email_body', true );
 		$adminEmailAttachUploads = get_post_meta( $postId, 'de_admin_attach_uploads', true );
 		$de_webform_use_user_email = get_post_meta( $postId, 'de_use_user_email', true );
-		$userEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
+		$userEmailFrom = get_post_meta( $postId, 'de_user_email_from', true );
 		$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
 		$userEmailSubject = get_post_meta( $postId, 'de_user_email_subject', true );
 		$userEmailBodyHtml = get_post_meta( $postId, 'de_user_email_body_html', true );
