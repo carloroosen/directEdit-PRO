@@ -259,6 +259,14 @@ function de_webform_setup( $post ) {
 	
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
 		/*
+		 * Limit login attempts
+		 */
+		if ( get_option( 'de_limit_login_attempts' ) && function_exists( 'de_security_login_check' ) && ! de_security_login_check() ) {
+			wp_redirect( home_url() );
+			die();
+		}
+		
+		/*
 		 * If wp-login form redirect switched off we do redirect to wp-login
 		 */
 		if ( ! get_option( 'de_wp_login_redirect' ) ) {
@@ -357,9 +365,15 @@ function de_webform_validate( $post ) {
 
 			if( empty( $de_webform_values[ 'email' ] ) || ! filter_var( $de_webform_values[ 'email' ], FILTER_VALIDATE_EMAIL ) || email_exists( $de_webform_values[ 'email' ] ) == false ) {
 				$de_webform_errors[ 'email' ] = __( 'You have no email specified.', 'direct-edit' );
+				if ( get_option( 'de_limit_login_attempts' ) && function_exists( 'de_security_add_login_attempt' ) ) {
+					de_security_add_login_attempt();
+				}
 			}
 			if( empty( $password ) ) {
 				$de_webform_errors[ 'password' ] = __( 'You have no password specified.', 'direct-edit' );
+				if ( get_option( 'de_limit_login_attempts' ) && function_exists( 'de_security_add_login_attempt' ) ) {
+					de_security_add_login_attempt();
+				}
 			}
 		}
 	}
@@ -420,6 +434,9 @@ function de_webform_action( $post ) {
 
 			if ( is_wp_error( $userVerify ) ) {
 				$de_webform_errors[] = $userVerify->get_error_message();
+				if ( get_option( 'de_limit_login_attempts' ) && function_exists( 'de_security_add_login_attempt' ) ) {
+					de_security_add_login_attempt();
+				}
 			}
 			
 			if ( current_user_can( 'edit_de_frontend' ) ) {

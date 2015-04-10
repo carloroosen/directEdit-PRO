@@ -845,6 +845,19 @@ function de_plugin_page() {
 			update_option( 'de_strong_passwords', sanitize_text_field( $_REQUEST[ 'strong_passwords' ] ) );
 			update_option( 'de_limit_login_attempts', sanitize_text_field( $_REQUEST[ 'limit_login_attempts' ] ) );
 			update_option( 'de_honeypot', sanitize_text_field( $_REQUEST[ 'honeypot' ] ) );
+			
+			if ( sanitize_text_field( $_REQUEST[ 'limit_login_attempts' ] ) ) {
+				$table_name = $wpdb->prefix . 'de_login_attempts';
+				$sql = 'CREATE TABLE `' . $table_name . '` (
+					`IP` VARCHAR( 20 ) NOT NULL,
+					`attempts` INT NOT NULL,
+					`last_login` DATETIME NOT NULL
+				)';
+				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+				dbDelta( $sql );
+			}
+
+			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
 		} elseif ( 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
 			check_admin_referer( 'de_nonce_de_menu_editor', '_de_nonce' );
 			
