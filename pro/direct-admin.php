@@ -1294,7 +1294,7 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
-		<?php if ( defined( 'DIRECT_SECURITY' ) ) { ?>
+		<?php if ( function_exists( 'de_security_use_honeypot' ) ) { ?>
 		<h3><i><?php _e( 'security', 'direct-edit' ); ?></i></h3>
 		<div class="inside">
 			<form method="post">

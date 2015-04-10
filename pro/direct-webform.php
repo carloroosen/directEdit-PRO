@@ -18,13 +18,13 @@ $de_webform_user_attachments = array();
 add_action( 'add_meta_boxes', 'de_webform_add_template_metabox' );
 add_action( 'init', 'de_webform_capabilities' );
 add_action( 'init', 'de_webform_create_post_types', 2 );
+add_action( 'init', 'de_webform_use_honeypot' );
 add_action( 'de_webform_form_setup', 'de_webform_setup' );
 add_action( 'de_webform_form_validate', 'de_webform_validate' );
 add_action( 'de_webform_form_action', 'de_webform_action' );
 add_action( 'save_post', 'de_webform_save_template', 10, 2 );
 add_action( 'template_include', 'de_webform_set_template', 0 );
 add_action( 'template_include', 'de_webform_process', 20 );
-add_action( 'wp_head', 'de_webform_print_custom_css' );
 
 function de_webform_add_template_metabox() {
 	add_meta_box( 'de_webform_general', __( 'General', 'direct-edit' ), 'de_webform_general_metabox', 'de_webform', 'normal', 'core' );
@@ -239,6 +239,14 @@ function de_webform_create_post_types() {
 			)
 		)
 	);
+}
+
+function de_webform_use_honeypot() {
+	global $direct_queried_object;
+	
+	if ( isset( $direct_queried_object ) && $direct_queried_object->post_type == 'de_webform' && function_exists( 'de_security_use_honeypot' ) ) {
+		de_security_use_honeypot();
+	}
 }
 
 function de_webform_setup( $post ) {
@@ -632,19 +640,4 @@ function de_webform_disable() {
 	});
 </script>
 	<?php
-}
-
-function de_webform_print_custom_css() {
-	global $direct_queried_object;
-	
-	if ( isset( $direct_queried_object ) && $direct_queried_object->post_type == 'de_webform' && get_option( 'de_honeypot' ) ) {
-	?>
-	<style>
-		.question {
-			position: absolute;
-			left: -10000px;
-		}
-	</style>
-	<?php
-	}
 }
