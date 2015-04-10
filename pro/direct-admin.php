@@ -723,7 +723,6 @@ function de_plugin_page() {
 			update_option( 'de_disable_backend_editor', sanitize_text_field( $_REQUEST[ 'disable_backend_editor' ] ) );
 			update_option( 'de_text_validation', sanitize_text_field( $_REQUEST[ 'text_validation' ] ) );
 			update_option( 'de_smart_urls', sanitize_text_field( $_REQUEST[ 'smart_urls' ] ) );
-			update_option( 'de_honeypot', sanitize_text_field( $_REQUEST[ 'honeypot' ] ) );
 			
 			// Handle login form
 			if( sanitize_text_field( $_REQUEST['wp_login_redirect'] ) ) {
@@ -840,6 +839,12 @@ function de_plugin_page() {
 			update_option( 'de_use_seo', sanitize_text_field( $_REQUEST[ 'use_seo' ] ) );
 
 			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		} elseif ( 'de_security' == $_REQUEST[ 'action' ] ) {
+			check_admin_referer( 'de_nonce_de_security', '_de_nonce' );
+			
+			update_option( 'de_strong_passwords', sanitize_text_field( $_REQUEST[ 'strong_passwords' ] ) );
+			update_option( 'de_limit_login_attempts', sanitize_text_field( $_REQUEST[ 'limit_login_attempts' ] ) );
+			update_option( 'de_honeypot', sanitize_text_field( $_REQUEST[ 'honeypot' ] ) );
 		} elseif ( 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
 			check_admin_referer( 'de_nonce_de_menu_editor', '_de_nonce' );
 			
@@ -1252,11 +1257,6 @@ function de_plugin_page() {
 								<?php } ?>
 							</td>
 						</tr>
-						<?php if ( post_type_exists( 'de_webform' ) ) { ?>
-						<tr>
-							<td><input type="hidden" name="honeypot" value="" /><label><input type="checkbox" name="honeypot" value="1"<?php echo ( get_option( 'de_honeypot' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'use honeypot captcha for DirectEdit webforms', 'direct-edit' ); ?></label></td>
-						</tr>
-						<?php } ?>
 						<tr>
 							<td><input type="submit" value="save" /></td>
 						</tr>
@@ -1294,6 +1294,33 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
+		<?php if ( defined( 'DIRECT_SECURITY' ) ) { ?>
+		<h3><i><?php _e( 'security', 'direct-edit' ); ?></i></h3>
+		<div class="inside">
+			<form method="post">
+				<?php wp_nonce_field( 'de_nonce_de_security', '_de_nonce' ); ?>
+				<input type="hidden" name="action" value="de_security" />
+				<table border="0">
+					<tbody>
+						<?php if ( post_type_exists( 'de_webform' ) ) { ?>
+						<tr>
+							<td><input type="hidden" name="strong_passwords" value="" /><label><input type="checkbox" name="strong_passwords" value="1"<?php echo ( get_option( 'de_strong_passwords' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'enforce strong passwords', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr>
+							<td><input type="hidden" name="limit_login_attempts" value="" /><label><input type="checkbox" name="limit_login_attempts" value="1"<?php echo ( get_option( 'de_limit_login_attempts' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'limit login attempts, then block user or IP', 'direct-edit' ); ?></label></td>
+						</tr>
+						<tr>
+							<td><input type="hidden" name="honeypot" value="" /><label><input type="checkbox" name="honeypot" value="1"<?php echo ( get_option( 'de_honeypot' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'use honeypot captcha for DirectEdit webforms', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
+						<tr>
+							<td><input type="submit" value="save" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+		</div>
+		<?php } ?>
 		<h3><?php _e( 'DirectEdit menu editor', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
