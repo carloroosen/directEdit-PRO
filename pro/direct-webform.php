@@ -18,7 +18,7 @@ $de_webform_user_attachments = array();
 add_action( 'add_meta_boxes', 'de_webform_add_template_metabox' );
 add_action( 'init', 'de_webform_capabilities' );
 add_action( 'init', 'de_webform_create_post_types', 2 );
-add_action( 'init', 'de_webform_use_honeypot' );
+add_action( 'template_redirect', 'de_webform_use_honeypot' );
 add_action( 'de_webform_form_setup', 'de_webform_setup' );
 add_action( 'de_webform_form_validate', 'de_webform_validate' );
 add_action( 'de_webform_form_action', 'de_webform_action' );
@@ -243,7 +243,7 @@ function de_webform_create_post_types() {
 
 function de_webform_use_honeypot() {
 	global $direct_queried_object;
-	
+
 	if ( isset( $direct_queried_object ) && $direct_queried_object->post_type == 'de_webform' && function_exists( 'de_security_use_honeypot' ) ) {
 		de_security_use_honeypot();
 	}
@@ -350,13 +350,15 @@ function de_webform_validate( $post ) {
 					$de_webform_errors[ 'email' ] = __( 'Wrong email address.', 'direct-edit' );
 				}
 			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
+				$user_data = get_userdata( $user_ID );
+				
 				$de_webform_values[ 'password_new' ] = sanitize_text_field( $_POST[ 'password_new' ] );
 				
 				if( empty( $de_webform_values[ 'password_new' ] ) ) {
 					$de_webform_errors[ 'password_new' ] = __( 'You have no password specified.', 'direct-edit' );
 				}
-				if( strlen( $de_webform_values[ 'password_new' ] ) < 6 ) {
-					$de_webform_errors[ 'password_new' ] = __( 'The password is too short.', 'direct-edit' );
+				if( get_option( 'de_strong_passwords' ) && de_check_password_strength( $de_webform_values[ 'password_new' ], $user_data->user_login ) != 4 ) {
+					$de_webform_errors[ 'password_new' ] = __( 'Please make the password a strong one.', 'direct-edit' );
 				}
 			}
 		} else {

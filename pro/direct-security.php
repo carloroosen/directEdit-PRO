@@ -91,3 +91,27 @@ function de_security_print_custom_css() {
 	<?php
 	}
 }
+
+// Password check. 4 is ok.
+function de_check_password_strength( $i, $f ) {
+	$h = 1; $e = 2; $b = 3; $a = 4; $d = 0; $g = null; $c = null;
+	if ( strlen( $i ) < 4 )
+		return $h;
+	if ( strtolower( $i ) == strtolower( $f ) )
+		return $e;
+	if ( preg_match( "/[0-9]/", $i ) )
+		$d += 10;
+	if ( preg_match( "/[a-z]/", $i ) )
+		$d += 26;
+	if ( preg_match( "/[A-Z]/", $i ) )
+		$d += 26;
+	if ( preg_match( "/[^a-zA-Z0-9]/", $i ) )
+		$d += 31;
+	$g = log( pow( $d, strlen( $i ) ) );
+	$c = $g / log( 2 );
+	if ( $c < 40 )
+		return $e;
+	if ( $c < 56 )
+		return $b;
+	return $a;
+}
