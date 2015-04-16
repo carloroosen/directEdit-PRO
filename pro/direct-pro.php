@@ -37,6 +37,9 @@ add_action( 'wp_print_footer_scripts', 'de_pro_footer_scripts', 20 );
 
 add_filter( 'edit_post_link', 'de_pro_remove_edit_post_link' );
 add_filter( 'logout_url', 'de_pro_logout_home', 10, 2 );
+add_filter( 'pre_site_transient_update_core', 'de_pro_remove_core_updates' );
+add_filter( 'pre_site_transient_update_plugins', 'de_pro_remove_core_updates' );
+add_filter( 'pre_site_transient_update_themes', 'de_pro_remove_core_updates' );
 add_filter( 'wp_nav_menu_objects', 'de_pro_nav_menu_filter', 10, 2 );
 if ( get_option( 'de_use_seo' ) == '' ) {
 	add_filter( 'wp_title', 'de_pro_seo_title', 100 );
@@ -1066,6 +1069,16 @@ function de_pro_set_locale( $locale ) {
 function de_pro_logout_home( $logouturl, $redir ) {
 	$redir = home_url();
 	return add_query_arg( 'redirect_to', urlencode( $redir ), $logouturl );
+}
+
+function de_pro_remove_core_updates( $arg ){
+	global $wp_version;
+
+	if ( ( get_option( 'de_tweak_backend' ) && is_admin() || get_option( 'de_tweak_frontend' ) && ! is_admin() ) && ! current_user_can('update_core') ) {
+		return ( object ) array( 'last_checked' => time(), 'version_checked' => $wp_version );
+	} else {
+		return $arg;
+	}
 }
 
 function de_pro_nav_menu_filter( $items, $args ) {
