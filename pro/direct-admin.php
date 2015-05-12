@@ -717,15 +717,18 @@ function de_plugin_page() {
 		} elseif ( 'de_options' == $_REQUEST[ 'action' ] ) {
 			check_admin_referer( 'de_nonce_de_options', '_de_nonce' );
 			
-			update_option( 'de_wp_login_redirect', sanitize_text_field( $_REQUEST[ 'wp_login_redirect' ] ) );
+			if ( post_type_exists( 'de_webform' ) ) {
+				update_option( 'de_global_admin_email', sanitize_text_field( $_REQUEST[ 'global_admin_email' ] ) );
+				update_option( 'de_wp_login_redirect', sanitize_text_field( $_REQUEST[ 'wp_login_redirect' ] ) );
+			}
 			update_option( 'de_tweak_backend', sanitize_text_field( $_REQUEST[ 'tweak_backend' ] ) );
 			update_option( 'de_tweak_frontend', sanitize_text_field( $_REQUEST[ 'tweak_frontend' ] ) );
 			update_option( 'de_disable_backend_editor', sanitize_text_field( $_REQUEST[ 'disable_backend_editor' ] ) );
 			update_option( 'de_text_validation', sanitize_text_field( $_REQUEST[ 'text_validation' ] ) );
 			update_option( 'de_smart_urls', sanitize_text_field( $_REQUEST[ 'smart_urls' ] ) );
-			
+
 			// Handle login form
-			if( sanitize_text_field( $_REQUEST['wp_login_redirect'] ) ) {
+			if( post_type_exists( 'de_webform' ) && sanitize_text_field( $_REQUEST['wp_login_redirect'] ) ) {
 				// Create log in form
 				if ( post_type_exists( 'de_webform' ) && ( ! get_option( 'de_login_form' ) || ! get_post( get_option( 'de_login_form' ) ) || get_post_type( get_option( 'de_login_form' ) ) != 'de_webform' ) ) {
 					$url = wp_nonce_url( basename( $_SERVER['PHP_SELF'] ) . '?page=direct-edit', 'de_nonce_de_options', '_de_nonce' );
@@ -1246,23 +1249,29 @@ function de_plugin_page() {
 				<input type="hidden" name="action" value="de_options" />
 				<table border="0">
 					<tbody>
+						<?php if ( post_type_exists( 'de_webform' ) ) { ?>
 						<tr>
-							<td><input type="hidden" name="wp_login_redirect" value="" /><label><input type="checkbox" name="wp_login_redirect" value="1"<?php echo ( get_option( 'de_wp_login_redirect' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'wp-login form redirect', 'direct-edit' ); ?></label></td>
+							<td><?php _e( 'global admin email for custom webforms', 'direct-edit' ); ?></td>
+							<td><input type="text" name="global_admin_email" value="<?php echo esc_attr( get_option( 'de_global_admin_email' ) ? get_option( 'de_global_admin_email' ) : get_option( 'admin_email' ) ); ?>" /></td>
 						</tr>
 						<tr>
-							<td><input type="hidden" name="tweak_backend" value="" /><label><input type="checkbox" name="tweak_backend" value="1"<?php echo ( get_option( 'de_tweak_backend' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'tweak backend', 'direct-edit' ); ?></label></td>
+							<td colspan="2"><input type="hidden" name="wp_login_redirect" value="" /><label><input type="checkbox" name="wp_login_redirect" value="1"<?php echo ( get_option( 'de_wp_login_redirect' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'wp-login form redirect', 'direct-edit' ); ?></label></td>
+						</tr>
+						<?php } ?>
+						<tr>
+							<td colspan="2"><input type="hidden" name="tweak_backend" value="" /><label><input type="checkbox" name="tweak_backend" value="1"<?php echo ( get_option( 'de_tweak_backend' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'tweak backend', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr>
-							<td><input type="hidden" name="tweak_frontend" value="" /><label><input type="checkbox" name="tweak_frontend" value="1"<?php echo ( get_option( 'de_tweak_frontend' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'tweak frontend WordPress toolbar', 'direct-edit' ); ?></label></td>
+							<td colspan="2"><input type="hidden" name="tweak_frontend" value="" /><label><input type="checkbox" name="tweak_frontend" value="1"<?php echo ( get_option( 'de_tweak_frontend' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'tweak frontend WordPress toolbar', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr>
-							<td><input type="hidden" name="disable_backend_editor" value="" /><label><input type="checkbox" name="disable_backend_editor" value="1"<?php echo ( get_option( 'de_disable_backend_editor' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'disable backend editing for editor', 'direct-edit' ); ?></label></td>
+							<td colspan="2"><input type="hidden" name="disable_backend_editor" value="" /><label><input type="checkbox" name="disable_backend_editor" value="1"<?php echo ( get_option( 'de_disable_backend_editor' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'disable backend editing for editor', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr>
-							<td><input type="hidden" name="text_validation" value="" /><label><input type="checkbox" name="text_validation" value="1"<?php echo ( get_option( 'de_text_validation' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'validate text', 'direct-edit' ); ?></label></td>
+							<td colspan="2"><input type="hidden" name="text_validation" value="" /><label><input type="checkbox" name="text_validation" value="1"<?php echo ( get_option( 'de_text_validation' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'validate text', 'direct-edit' ); ?></label></td>
 						</tr>
 						<tr>
-							<td>
+							<td colspan="2">
 								<input type="hidden" name="smart_urls" value="" /><label><input type="checkbox" name="smart_urls" value="1"<?php echo ( get_option( 'de_smart_urls' ) ? ' checked="checked"' : '' ); ?><?php echo ( get_option( 'permalink_structure' ) != '/%postname%/' ? ' disabled="disabled"' : '' ); ?> /> <?php _e( 'use DirectEdit smart url\'s', 'direct-edit' ); ?></label>
 								<?php if ( get_option( 'permalink_structure' ) != '/%postname%/' ) { ?>
 								<br />

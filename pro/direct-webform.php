@@ -61,8 +61,12 @@ function de_webform_email_admin_metabox( $post ) {
 	$newPage = ( basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' );
 	
 	$useAdminEmail = get_post_meta( $postId, 'de_use_admin_email', true );
-	$adminEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_admin_email_from', true ) );
-	$adminEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
+	$adminFromUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_from_use_global', true ) );
+	//$adminEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_admin_email_from', true ) );
+	$adminEmailFrom = ( $newPage ? '' : get_post_meta( $postId, 'de_admin_email_from', true ) );
+	$adminToUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_to_use_global', true ) );
+	//$adminEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
+	$adminEmailTo = ( $newPage ? '' : get_post_meta( $postId, 'de_admin_email_to', true ) );
 	$adminEmailSubject = get_post_meta( $postId, 'de_admin_email_subject', true );
 	$adminEmailBodyHtml = get_post_meta( $postId, 'de_admin_email_body_html', true );
 	$adminEmailBody = get_post_meta( $postId, 'de_admin_email_body', true );
@@ -73,14 +77,22 @@ function de_webform_email_admin_metabox( $post ) {
 	echo ' <label for="de_use_admin_email">' . __( 'Use admin email', 'direct-edit' ) . '</label>';
 	echo '<br />';
 	echo '<br />';
-	echo '<label for="de_admin_email_from">' . __( 'From', 'direct-edit' ) . '</label>';
+	echo '<label>' . __( 'From', 'direct-edit' ) . '</label>';
 	echo '<br />';
+	echo '<input type="hidden" name="de_admin_from_use_global" value="0" /><input type="checkbox" id="de_admin_from_use_global" name="de_admin_from_use_global" value="1" ' . checked( $adminFromUseGlobal, 1, false ) . ' onclick="if(jQuery(\'#de_admin_from_use_global\').prop(\'checked\')) {jQuery(\'#de_admin_email_from_span\').hide();} else {jQuery(\'#de_admin_email_from_span\').show();}" /> Use global admin email';
+	echo '<br />';
+	echo '<span id="de_admin_email_from_span"' . ( $adminFromUseGlobal ? ' style="display: none;"' : '' ) . '>';
 	echo '<input type="text" id="de_admin_email_from" name="de_admin_email_from" value="' . esc_attr( $adminEmailFrom ) . '" size="25" />';
 	echo '<br />';
-	echo '<label for="de_admin_email_to">' . __( 'To', 'direct-edit' ) . '</label>';
+	echo '</span>';
+	echo '<label>' . __( 'To', 'direct-edit' ) . '</label>';
 	echo '<br />';
+	echo '<input type="hidden" name="de_admin_to_use_global" value="0" /><input type="checkbox" id="de_admin_to_use_global" name="de_admin_to_use_global" value="1" ' . checked( $adminToUseGlobal, 1, false ) . ' onclick="if(jQuery(\'#de_admin_to_use_global\').prop(\'checked\')) {jQuery(\'#de_admin_email_to_span\').hide();} else {jQuery(\'#de_admin_email_to_span\').show();}" /> Use global admin email';
+	echo '<br />';
+	echo '<span id="de_admin_email_to_span"' . ( $adminToUseGlobal ? ' style="display: none;"' : '' ) . '>';
 	echo '<input type="text" id="de_admin_email_to" name="de_admin_email_to" value="' . esc_attr( $adminEmailTo ) . '" size="25" />';
 	echo '<br />';
+	echo '</span>';
 	echo '<label for="de_admin_email_subject">' . __( 'Subject', 'direct-edit' ) . '</label>';
 	echo '<br />';
 	echo '<input type="text" id="de_admin_email_subject" name="de_admin_email_subject" value="' . esc_attr( $adminEmailSubject ) . '" size="25" />';
@@ -106,8 +118,12 @@ function de_webform_email_user_metabox( $post ) {
 	$newPage = ( basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' );
 	
 	$useUserEmail = get_post_meta( $postId, 'de_use_user_email', true );
-	$userEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
-	$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
+	$userFromUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_from_use_global', true ) );
+	//$userEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
+	$userEmailFrom = ( $newPage ? '' : get_post_meta( $postId, 'de_user_email_from', true ) );
+	$userToUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_to_use_global', true ) );
+	//$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
+	$userEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
 	$userEmailSubject = get_post_meta( $postId, 'de_user_email_subject', true );
 	$userEmailBodyHtml = get_post_meta( $postId, 'de_user_email_body_html', true );
 	$userEmailBody = get_post_meta( $postId, 'de_user_email_body', true );
@@ -118,14 +134,22 @@ function de_webform_email_user_metabox( $post ) {
 	echo ' <label for="de_use_user_email">' . __( 'Use user email', 'direct-edit' ) . '</label>';
 	echo '<br />';
 	echo '<br />';
-	echo '<label for="de_user_email_from">' . __( 'From', 'direct-edit' ) . '</label>';
+	echo '<label>' . __( 'From', 'direct-edit' ) . '</label>';
 	echo '<br />';
+	echo '<input type="hidden" name="de_user_from_use_global" value="0" /><input type="checkbox" id="de_user_from_use_global" name="de_user_from_use_global" value="1" ' . checked( $userFromUseGlobal, 1, false ) . ' onclick="if(jQuery(\'#de_user_from_use_global\').prop(\'checked\')) {jQuery(\'#de_user_email_from_span\').hide();} else {jQuery(\'#de_user_email_from_span\').show();}" /> Use global admin email';
+	echo '<br />';
+	echo '<span id="de_user_email_from_span"' . ( $userFromUseGlobal ? ' style="display: none;"' : '' ) . '>';
 	echo '<input type="text" id="de_user_email_from" name="de_user_email_from" value="' . esc_attr( $userEmailFrom ) . '" size="25" />';
 	echo '<br />';
+	echo '</span>';
 	echo '<label for="de_user_email_to">' . __( 'To', 'direct-edit' ) . '</label>';
 	echo '<br />';
+	echo '<input type="hidden" name="de_user_to_use_global" value="0" /><input type="checkbox" id="de_user_to_use_global" name="de_user_to_use_global" value="1" ' . checked( $userToUseGlobal, 1, false ) . ' onclick="if(jQuery(\'#de_user_to_use_global\').prop(\'checked\')) {jQuery(\'#de_user_email_to_span\').hide();} else {jQuery(\'#de_user_email_to_span\').show();}" /> Use global admin email';
+	echo '<br />';
+	echo '<span id="de_user_email_to_span"' . ( $userToUseGlobal ? ' style="display: none;"' : '' ) . '>';
 	echo '<input type="text" id="de_user_email_to" name="de_user_email_to" value="' . esc_attr( $userEmailTo ) . '" size="25" />';
 	echo '<br />';
+	echo '</span>';
 	echo '<label for="de_user_email_subject">' . __( 'Subject', 'direct-edit' ) . '</label>';
 	echo '<br />';
 	echo '<input type="text" id="de_user_email_subject" name="de_user_email_subject" value="' . esc_attr( $userEmailSubject ) . '" size="25" />';
@@ -460,7 +484,9 @@ function de_webform_save_template( $post_id, $post ) {
 			update_post_meta( $post->ID, 'de_success_message', $_POST['de_success_message'] );
 			
 			update_post_meta( $post->ID, 'de_use_admin_email', $_POST['de_use_admin_email'] );
+			update_post_meta( $post->ID, 'de_admin_from_use_global', $_POST['de_admin_from_use_global'] );
 			update_post_meta( $post->ID, 'de_admin_email_from', $_POST['de_admin_email_from'] );
+			update_post_meta( $post->ID, 'de_admin_to_use_global', $_POST['de_admin_to_use_global'] );
 			update_post_meta( $post->ID, 'de_admin_email_to', $_POST['de_admin_email_to'] );
 			update_post_meta( $post->ID, 'de_admin_email_subject', $_POST['de_admin_email_subject'] );
 			update_post_meta( $post->ID, 'de_admin_email_body_html', $_POST['de_admin_email_body_html'] );
@@ -468,7 +494,9 @@ function de_webform_save_template( $post_id, $post ) {
 			update_post_meta( $post->ID, 'de_admin_attach_uploads', $_POST['de_admin_attach_uploads'] );
 			
 			update_post_meta( $post->ID, 'de_use_user_email', $_POST['de_use_user_email'] );
+			update_post_meta( $post->ID, 'de_user_from_use_global', $_POST['de_user_from_use_global'] );
 			update_post_meta( $post->ID, 'de_user_email_from', $_POST['de_user_email_from'] );
+			update_post_meta( $post->ID, 'de_user_to_use_global', $_POST['de_user_to_use_global'] );
 			update_post_meta( $post->ID, 'de_user_email_to', $_POST['de_user_email_to'] );
 			update_post_meta( $post->ID, 'de_user_email_subject', $_POST['de_user_email_subject'] );
 			update_post_meta( $post->ID, 'de_user_email_body_html', $_POST['de_user_email_body_html'] );
@@ -510,15 +538,15 @@ function de_webform_process( $template ) {
 		$de_webform_success_page = get_post_meta( $postId, 'de_success_page', true );
 		$de_webform_success_message = get_post_meta( $postId, 'de_success_message', true );
 		$de_webform_use_admin_email = get_post_meta( $postId, 'de_use_admin_email', true );
-		$adminEmailFrom = get_post_meta( $postId, 'de_admin_email_from', true );
-		$adminEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
+		$adminEmailFrom = ( get_post_meta( $postId, 'de_admin_from_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_admin_email_from', true ) );
+		$adminEmailTo = ( get_post_meta( $postId, 'de_admin_to_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_admin_email_to', true ) );
 		$adminEmailSubject = get_post_meta( $postId, 'de_admin_email_subject', true );
 		$adminEmailBodyHtml = get_post_meta( $postId, 'de_admin_email_body_html', true );
 		$adminEmailBody = get_post_meta( $postId, 'de_admin_email_body', true );
 		$adminEmailAttachUploads = get_post_meta( $postId, 'de_admin_attach_uploads', true );
 		$de_webform_use_user_email = get_post_meta( $postId, 'de_use_user_email', true );
-		$userEmailFrom = get_post_meta( $postId, 'de_user_email_from', true );
-		$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
+		$userEmailFrom = ( get_post_meta( $postId, 'de_user_from_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
+		$userEmailTo = ( get_post_meta( $postId, 'de_user_to_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_user_email_to', true ) );
 		$userEmailSubject = get_post_meta( $postId, 'de_user_email_subject', true );
 		$userEmailBodyHtml = get_post_meta( $postId, 'de_user_email_body_html', true );
 		$userEmailBody = get_post_meta( $postId, 'de_user_email_body', true );
