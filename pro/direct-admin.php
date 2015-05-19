@@ -1,17 +1,21 @@
 <?php
 add_action( 'add_meta_boxes', 'de_metaboxes_add', 0 );
+add_action( 'admin_head', 'de_hide_editor' );
 add_action( 'admin_init', 'de_disable_for_subscribers' );
 add_action( 'admin_menu', 'de_adjust_menus' );
 add_action( 'admin_menu', 'de_plugin_menu' );
+add_action( 'do_meta_boxes', 'de_remove_more_metaboxes' );
+add_action( 'pre_get_posts', 'de_remove_metaboxes' );
 add_action( 'save_post','de_metaboxes_save', 1000, 2 );
 
 add_filter( 'get_sample_permalink_html', 'de_replace_permalink', 10, 2 );
 add_filter( 'page_row_actions', 'de_remove_row_actions', 10, 1 );
 
 function de_metaboxes_add() {
+	global $current_user;
 	global $post;
 
-	if ( $post && $post->ID ) {
+	if ( ! ( in_array( 'editor', $current_user->roles ) && get_option( 'de_tweak_backend' ) ) && $post && $post->ID ) {
 		if ( get_option( 'de_smart_urls' ) && get_option( 'permalink_structure' ) == '/%postname%/' ) {
 			add_meta_box( 'deSlug', __( 'Direct Edit Slug', 'direct-edit' ), 'de_slug_meta_box', $post->post_type, 'normal', 'core' );
 		}
@@ -65,6 +69,22 @@ function de_wp_hooks_meta_box( $post ) {
 	echo '<option value="1"' . ( $de_wp_hooks[ 'excerpt' ] == 1 ? ' selected="selected"' : '' ) . '>Enable</option>';
 	echo '</select>';
 	echo '</fieldset>';
+}
+
+function de_hide_editor() {
+	global $current_user;
+	global $post;
+
+	if ( ( in_array( 'editor', $current_user->roles ) && get_option( 'de_tweak_backend' ) ) && $post && $post->ID ) {
+		?>
+		<style>
+			h2 { display:none; }
+			#notice { display:none; }
+			#post-body-content { display:none; }
+			#misc-publishing-actions { display:none; }
+		</style>
+		<?php
+	}
 }
 
 function de_disable_for_subscribers() {
@@ -1422,6 +1442,36 @@ function de_plugin_page() {
 		<?php } ?>
 	</div>
 	<?php
+}
+
+function de_remove_more_metaboxes() {
+	global $current_user;
+	global $post;
+
+	if ( ( in_array( 'editor', $current_user->roles ) && get_option( 'de_tweak_backend' ) ) && $post && $post->ID ) {
+		remove_meta_box( 'slugdiv', $post->post_type, 'normal' );
+		remove_meta_box( 'postimagediv', $post->post_type, 'side' );
+	}
+}
+
+function de_remove_metaboxes() {
+	global $current_user;
+	global $post;
+
+	if ( ( in_array( 'editor', $current_user->roles ) && get_option( 'de_tweak_backend' ) ) && $post && $post->ID ) {
+		remove_meta_box( 'authordiv', $post->post_type, 'normal' );
+		remove_meta_box( 'categorydiv', $post->post_type, 'normal' );
+		remove_meta_box( 'commentsdiv', $post->post_type, 'normal' );
+		remove_meta_box( 'commentstatusdiv', $post->post_type, 'normal' );
+		remove_meta_box( 'formatdiv', $post->post_type, 'normal' );
+		remove_meta_box( 'pageparentdiv', $post->post_type, 'normal' );
+		remove_meta_box( 'postcustom', $post->post_type, 'normal' );
+		remove_meta_box( 'postexcerpt', $post->post_type, 'normal' );
+		remove_meta_box( 'revisionsdiv', $post->post_type, 'normal' );
+		remove_meta_box( 'tagsdiv-post_tag', $post->post_type, 'normal' );
+		remove_meta_box( 'trackbacksdiv', $post->post_type, 'normal' );
+		//remove_meta_box( 'submitdiv', $post->post_type, 'normal' );
+	}
 }
 
 function de_metaboxes_save( $post_id, $post ) {
