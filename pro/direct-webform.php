@@ -67,6 +67,8 @@ function de_webform_email_admin_metabox( $post ) {
 	$adminToUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_to_use_global', true ) );
 	//$adminEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
 	$adminEmailTo = ( $newPage ? '' : get_post_meta( $postId, 'de_admin_email_to', true ) );
+	$adminToBccUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_to_bcc_use_global', true ) );
+	$adminEmailToBcc = ( $newPage ? '' : get_post_meta( $postId, 'de_admin_email_to_bcc', true ) );
 	$adminEmailSubject = get_post_meta( $postId, 'de_admin_email_subject', true );
 	$adminEmailBodyHtml = get_post_meta( $postId, 'de_admin_email_body_html', true );
 	$adminEmailBody = get_post_meta( $postId, 'de_admin_email_body', true );
@@ -91,6 +93,14 @@ function de_webform_email_admin_metabox( $post ) {
 	echo '<br />';
 	echo '<span id="de_admin_email_to_span"' . ( $adminToUseGlobal ? ' style="display: none;"' : '' ) . '>';
 	echo '<input type="text" id="de_admin_email_to" name="de_admin_email_to" value="' . esc_attr( $adminEmailTo ) . '" size="25" />';
+	echo '<br />';
+	echo '</span>';
+	echo '<label>' . __( 'Bcc', 'direct-edit' ) . '</label>';
+	echo '<br />';
+	echo '<input type="hidden" name="de_admin_to_bcc_use_global" value="0" /><input type="checkbox" id="de_admin_to_bcc_use_global" name="de_admin_to_bcc_use_global" value="1" ' . checked( $adminToBccUseGlobal, 1, false ) . ' onclick="if(jQuery(\'#de_admin_to_bcc_use_global\').prop(\'checked\')) {jQuery(\'#de_admin_email_to_bcc_span\').hide();} else {jQuery(\'#de_admin_email_to_bcc_span\').show();}" /> Use global bcc';
+	echo '<br />';
+	echo '<span id="de_admin_email_to_bcc_span"' . ( $adminToBccUseGlobal ? ' style="display: none;"' : '' ) . '>';
+	echo '<input type="text" id="de_admin_email_to_bcc" name="de_admin_email_to_bcc" value="' . esc_attr( $adminEmailToBcc ) . '" size="25" />';
 	echo '<br />';
 	echo '</span>';
 	echo '<label for="de_admin_email_subject">' . __( 'Subject', 'direct-edit' ) . '</label>';
@@ -124,6 +134,8 @@ function de_webform_email_user_metabox( $post ) {
 	$userToUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_to_use_global', true ) );
 	//$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
 	$userEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
+	$userToBccUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_to_bcc_use_global', true ) );
+	$userEmailToBcc = ( $newPage ? '' : get_post_meta( $postId, 'de_user_email_to_bcc', true ) );
 	$userEmailSubject = get_post_meta( $postId, 'de_user_email_subject', true );
 	$userEmailBodyHtml = get_post_meta( $postId, 'de_user_email_body_html', true );
 	$userEmailBody = get_post_meta( $postId, 'de_user_email_body', true );
@@ -148,6 +160,14 @@ function de_webform_email_user_metabox( $post ) {
 	echo '<br />';
 	echo '<span id="de_user_email_to_span"' . ( $userToUseGlobal ? ' style="display: none;"' : '' ) . '>';
 	echo '<input type="text" id="de_user_email_to" name="de_user_email_to" value="' . esc_attr( $userEmailTo ) . '" size="25" />';
+	echo '<br />';
+	echo '</span>';
+	echo '<label>' . __( 'Bcc', 'direct-edit' ) . '</label>';
+	echo '<br />';
+	echo '<input type="hidden" name="de_user_to_bcc_use_global" value="0" /><input type="checkbox" id="de_user_to_bcc_use_global" name="de_user_to_bcc_use_global" value="1" ' . checked( $userToBccUseGlobal, 1, false ) . ' onclick="if(jQuery(\'#de_user_to_bcc_use_global\').prop(\'checked\')) {jQuery(\'#de_user_email_to_bcc_span\').hide();} else {jQuery(\'#de_user_email_to_bcc_span\').show();}" /> Use global bcc';
+	echo '<br />';
+	echo '<span id="de_user_email_to_bcc_span"' . ( $userToBccUseGlobal ? ' style="display: none;"' : '' ) . '>';
+	echo '<input type="text" id="de_user_email_to_bcc" name="de_user_email_to_bcc" value="' . esc_attr( $userEmailToBcc ) . '" size="25" />';
 	echo '<br />';
 	echo '</span>';
 	echo '<label for="de_user_email_subject">' . __( 'Subject', 'direct-edit' ) . '</label>';
@@ -488,6 +508,8 @@ function de_webform_save_template( $post_id, $post ) {
 			update_post_meta( $post->ID, 'de_admin_email_from', $_POST['de_admin_email_from'] );
 			update_post_meta( $post->ID, 'de_admin_to_use_global', $_POST['de_admin_to_use_global'] );
 			update_post_meta( $post->ID, 'de_admin_email_to', $_POST['de_admin_email_to'] );
+			update_post_meta( $post->ID, 'de_admin_to_bcc_use_global', $_POST['de_admin_to_bcc_use_global'] );
+			update_post_meta( $post->ID, 'de_admin_email_to_bcc', $_POST['de_admin_email_to_bcc'] );
 			update_post_meta( $post->ID, 'de_admin_email_subject', $_POST['de_admin_email_subject'] );
 			update_post_meta( $post->ID, 'de_admin_email_body_html', $_POST['de_admin_email_body_html'] );
 			update_post_meta( $post->ID, 'de_admin_email_body', $_POST['de_admin_email_body'] );
@@ -498,6 +520,8 @@ function de_webform_save_template( $post_id, $post ) {
 			update_post_meta( $post->ID, 'de_user_email_from', $_POST['de_user_email_from'] );
 			update_post_meta( $post->ID, 'de_user_to_use_global', $_POST['de_user_to_use_global'] );
 			update_post_meta( $post->ID, 'de_user_email_to', $_POST['de_user_email_to'] );
+			update_post_meta( $post->ID, 'de_user_to_bcc_use_global', $_POST['de_user_to_bcc_use_global'] );
+			update_post_meta( $post->ID, 'de_user_email_to_bcc', $_POST['de_user_email_to_bcc'] );
 			update_post_meta( $post->ID, 'de_user_email_subject', $_POST['de_user_email_subject'] );
 			update_post_meta( $post->ID, 'de_user_email_body_html', $_POST['de_user_email_body_html'] );
 			update_post_meta( $post->ID, 'de_user_email_body', $_POST['de_user_email_body'] );
@@ -540,6 +564,7 @@ function de_webform_process( $template ) {
 		$de_webform_use_admin_email = get_post_meta( $postId, 'de_use_admin_email', true );
 		$adminEmailFrom = ( get_post_meta( $postId, 'de_admin_from_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_admin_email_from', true ) );
 		$adminEmailTo = ( get_post_meta( $postId, 'de_admin_to_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_admin_email_to', true ) );
+		$adminEmailToBcc = ( get_post_meta( $postId, 'de_admin_to_bcc_use_global', true ) ? get_option( 'de_global_admin_email_bcc' ) : get_post_meta( $postId, 'de_admin_email_to_bcc', true ) );
 		$adminEmailSubject = get_post_meta( $postId, 'de_admin_email_subject', true );
 		$adminEmailBodyHtml = get_post_meta( $postId, 'de_admin_email_body_html', true );
 		$adminEmailBody = get_post_meta( $postId, 'de_admin_email_body', true );
@@ -547,6 +572,7 @@ function de_webform_process( $template ) {
 		$de_webform_use_user_email = get_post_meta( $postId, 'de_use_user_email', true );
 		$userEmailFrom = ( get_post_meta( $postId, 'de_user_from_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
 		$userEmailTo = ( get_post_meta( $postId, 'de_user_to_use_global', true ) ? get_option( 'de_global_admin_email' ) : get_post_meta( $postId, 'de_user_email_to', true ) );
+		$userEmailToBcc = ( get_post_meta( $postId, 'de_user_to_bcc_use_global', true ) ? get_option( 'de_global_admin_email_bcc' ) : get_post_meta( $postId, 'de_user_email_to_bcc', true ) );
 		$userEmailSubject = get_post_meta( $postId, 'de_user_email_subject', true );
 		$userEmailBodyHtml = get_post_meta( $postId, 'de_user_email_body_html', true );
 		$userEmailBody = get_post_meta( $postId, 'de_user_email_body', true );
@@ -612,6 +638,9 @@ function de_webform_process( $template ) {
 						//if( filter_var( $adminEmailFrom, FILTER_VALIDATE_EMAIL ) && filter_var( $adminEmailTo, FILTER_VALIDATE_EMAIL ) ) {
 							$blogname = wp_specialchars_decode( get_option('blogname'), ENT_QUOTES );
 							$headers = 'From: ' . $blogname . ' <' . $adminEmailFrom . ">\r\n";
+							if ( $adminEmailToBcc ) {
+								$headers .= 'Bcc: ' . $adminEmailToBcc . "\r\n";
+							}
 							if ( $adminEmailBodyHtml )
 								$headers .= 'Content-type: text/html' . "\r\n";
 							if ( count( $de_webform_admin_attachments ) > 0 ) {
@@ -632,6 +661,9 @@ function de_webform_process( $template ) {
 						//if( filter_var( $userEmailFrom, FILTER_VALIDATE_EMAIL ) && filter_var( $userEmailTo, FILTER_VALIDATE_EMAIL ) ) {
 							$blogname = wp_specialchars_decode( get_option('blogname'), ENT_QUOTES );
 							$headers = 'From: ' . $blogname . ' <' . $userEmailFrom . ">\r\n";
+							if ( $userEmailToBcc ) {
+								$headers .= 'Bcc: ' . $userEmailToBcc . "\r\n";
+							}
 							if ( $userEmailBodyHtml )
 								$headers .= 'Content-type: text/html' . "\r\n";
 							if ( count( $de_webform_user_attachments ) > 0 ) {

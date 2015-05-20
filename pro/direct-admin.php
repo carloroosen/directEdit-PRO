@@ -738,8 +738,9 @@ function de_plugin_page() {
 			check_admin_referer( 'de_nonce_de_options', '_de_nonce' );
 			
 			if ( post_type_exists( 'de_webform' ) ) {
-				update_option( 'de_global_admin_email', sanitize_text_field( $_REQUEST[ 'global_admin_email' ] ) );
 				update_option( 'de_wp_login_redirect', sanitize_text_field( $_REQUEST[ 'wp_login_redirect' ] ) );
+				update_option( 'de_global_admin_email', sanitize_text_field( $_REQUEST[ 'global_admin_email' ] ) );
+				update_option( 'de_global_admin_email_bcc', sanitize_text_field( $_REQUEST[ 'global_admin_email_bcc' ] ) );
 			}
 			update_option( 'de_tweak_backend', sanitize_text_field( $_REQUEST[ 'tweak_backend' ] ) );
 			update_option( 'de_tweak_frontend', sanitize_text_field( $_REQUEST[ 'tweak_frontend' ] ) );
@@ -1271,10 +1272,6 @@ function de_plugin_page() {
 					<tbody>
 						<?php if ( post_type_exists( 'de_webform' ) ) { ?>
 						<tr>
-							<td><?php _e( 'global admin email for custom webforms', 'direct-edit' ); ?></td>
-							<td><input type="text" name="global_admin_email" value="<?php echo esc_attr( get_option( 'de_global_admin_email' ) ? get_option( 'de_global_admin_email' ) : get_option( 'admin_email' ) ); ?>" /></td>
-						</tr>
-						<tr>
 							<td colspan="2"><input type="hidden" name="wp_login_redirect" value="" /><label><input type="checkbox" name="wp_login_redirect" value="1"<?php echo ( get_option( 'de_wp_login_redirect' ) ? ' checked="checked"' : '' ); ?> /> <?php _e( 'wp-login form redirect', 'direct-edit' ); ?></label></td>
 						</tr>
 						<?php } ?>
@@ -1299,6 +1296,16 @@ function de_plugin_page() {
 								<?php } ?>
 							</td>
 						</tr>
+						<?php if ( post_type_exists( 'de_webform' ) ) { ?>
+						<tr>
+							<td><?php _e( 'global admin email for custom webforms', 'direct-edit' ); ?></td>
+							<td><input type="text" name="global_admin_email" value="<?php echo esc_attr( get_option( 'de_global_admin_email' ) ? get_option( 'de_global_admin_email' ) : get_option( 'admin_email' ) ); ?>" /></td>
+						</tr>
+						<tr>
+							<td><?php _e( 'bcc for custom webforms', 'direct-edit' ); ?></td>
+							<td><input type="text" name="global_admin_email_bcc" value="<?php echo esc_attr( get_option( 'de_global_admin_email_bcc' ) ? get_option( 'de_global_admin_email_bcc' ) : '' ); ?>" /></td>
+						</tr>
+						<?php } ?>
 						<tr>
 							<td><input type="submit" value="save" /></td>
 						</tr>
