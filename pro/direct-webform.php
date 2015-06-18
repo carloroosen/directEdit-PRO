@@ -533,7 +533,7 @@ function de_webform_save_template( $post_id, $post ) {
 function de_webform_set_template( $template ) {
 	global $direct_queried_object;
 	
-	if ( $direct_queried_object->post_type == 'de_webform' && get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) && file_exists( get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) ) ) {
+	if ( $direct_queried_object && $direct_queried_object->post_type == 'de_webform' && get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) && file_exists( get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) ) ) {
 		$template = get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true );
 	}
 	

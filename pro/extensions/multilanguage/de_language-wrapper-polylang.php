@@ -20,7 +20,7 @@ class De_Language_Wrapper {
 		else
 			$show_languages = array();
 
-		foreach ( $polylang->get_languages_list() as $language ) {
+		foreach ( $polylang->model->get_languages_list() as $language ) {
 			if ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) || in_array( $language->slug, $show_languages ) ) {
 				$result[] = $language->slug;
 			}
@@ -38,7 +38,7 @@ class De_Language_Wrapper {
 		global $polylang;
 		global $l10n;
 		
-		$polylang->curlang = $polylang->get_language( $lang );
+		$polylang->curlang = $polylang->model->get_language( $lang );
 		do_action( 'pll_language_defined', $polylang->curlang->slug, $polylang->curlang );
 	}
 	
@@ -57,14 +57,14 @@ class De_Language_Wrapper {
 	public static function set_post_language( $post_id, $lang ) {
 		global $polylang;
 		
-		$polylang->set_post_language( $post_id, $lang );
+		$polylang->model->set_post_language( $post_id, $lang );
 	}
 	
 	public static function get_post_language( $post_id ) {
 		global $polylang;
 		
-		if ( $polylang->get_post_language( $post_id ) )
-			return $polylang->get_post_language( $post_id )->slug;
+		if ( $polylang->model->get_post_language( $post_id ) )
+			return $polylang->model->get_post_language( $post_id )->slug;
 		else
 			return '';
 	}
@@ -153,11 +153,11 @@ class De_Language_Wrapper {
 	public static function get_language_name( $lang ) {
 		global $polylang;
 		
-		return $polylang->get_language( $lang )->name;
+		return $polylang->model->get_language( $lang )->name;
 	}
 	
 	public static function register_translation( $string, $name = '' ) {
-		pll_register_string( ( $name ? $name : $string ), $string );
+		pll_register_string( ( $name ? $name : $string ), $string, 'direct-edit' );
 	}
 	
 	public static function translate_string( $string, $echo = false ) {
@@ -279,6 +279,7 @@ class De_Language_Wrapper {
 
 add_filter( 'de_get_de_posts', 'de_add_language_query_arg' );
 add_filter( 'de_translate_menu_items', 'de_translate_menu_items' );
+add_filter( 'pll_check_canonical_url', 'de_polylang_prevent_redirects' );
 add_filter( 'wp_redirect', 'de_on_language_add' );
 
 function de_add_language_query_arg( $request ) {
@@ -292,8 +293,12 @@ function de_translate_menu_items( $items ) {
 	return $items;
 }
 
+function de_polylang_prevent_redirects() {
+	return false;
+}
+
 function de_on_language_add( $string ) {
-	if ( $_REQUEST[ 'page' ] == 'mlang' && ( $_REQUEST[ 'action' ] == 'add' || $_REQUEST[ 'pll_action' ] == 'add' ) && $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
+	if ( isset( $_REQUEST[ 'page' ] ) && $_REQUEST[ 'page' ] == 'mlang' && ( isset( $_REQUEST[ 'action' ] ) && $_REQUEST[ 'action' ] == 'add' || isset( $_REQUEST[ 'pll_action' ] ) && $_REQUEST[ 'pll_action' ] == 'add' ) && $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
 		De_Language_Wrapper::on_language_add();
 	}
 	
