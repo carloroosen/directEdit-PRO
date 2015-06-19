@@ -132,8 +132,7 @@ function de_webform_email_user_metabox( $post ) {
 	//$userEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
 	$userEmailFrom = ( $newPage ? '' : get_post_meta( $postId, 'de_user_email_from', true ) );
 	$userToUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_to_use_global', true ) );
-	//$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
-	$userEmailTo = get_post_meta( $postId, 'de_admin_email_to', true );
+	$userEmailTo = get_post_meta( $postId, 'de_user_email_to', true );
 	$userToBccUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_to_bcc_use_global', true ) );
 	$userEmailToBcc = ( $newPage ? '' : get_post_meta( $postId, 'de_user_email_to_bcc', true ) );
 	$userEmailSubject = get_post_meta( $postId, 'de_user_email_subject', true );
