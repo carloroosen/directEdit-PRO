@@ -28,9 +28,12 @@ class De_Item_Menu extends De_Item {
 			$this->settings[ 'menu' ] = $menu->slug;
 		}
 
+		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+		/*
 		if ( De_Store::is_editable( $this ) ) {
 			De_Items::add( $this );
 		}
+		*/
 	}
 
 	// We don't need output_partial() for menus.
@@ -38,7 +41,9 @@ class De_Item_Menu extends De_Item {
 		global $direct_walker;
 		
 		$params = $this->get_setting( 'directMenuParams' );
-		
+
+		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+		/*	
 		if ( De_Store::is_editable( $this ) ) {
 			// Editable menu
 			$result = '';
@@ -73,6 +78,7 @@ class De_Item_Menu extends De_Item {
 				echo $result;
 			}
 		} else {
+		*/
 			$result = '';
 			
 			// Use our walker if menu exists only
@@ -82,6 +88,8 @@ class De_Item_Menu extends De_Item {
 			
 			$result = wp_nav_menu( $params );
 			return $result;
+		/*
 		}
+		*/
 	}
 }

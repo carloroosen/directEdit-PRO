@@ -882,6 +882,8 @@ function de_plugin_page() {
 			}
 
 			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+		/*
 		} elseif ( 'de_menu_editor' == $_REQUEST[ 'action' ] ) {
 			check_admin_referer( 'de_nonce_de_menu_editor', '_de_nonce' );
 			
@@ -918,6 +920,7 @@ function de_plugin_page() {
 			}
 
 			add_settings_error( 'direct-edit', 'de-updated', __( 'Settings saved.', 'direct-edit' ), 'updated' );
+		*/
 		} elseif ( 'languages' == $_REQUEST['action'] ) {
 			check_admin_referer( 'de_nonce_languages', '_de_nonce' );
 			
@@ -1370,6 +1373,8 @@ function de_plugin_page() {
 			</form>
 		</div>
 		<?php } ?>
+		<?php /* Menu editor is hidden. Probably it will be removed at all in future versions. */ ?> 
+		<?php /* ?>
 		<h3><?php _e( 'DirectEdit menu editor', 'direct-edit' ); ?></h3>
 		<div class="inside">
 			<form method="post">
@@ -1416,6 +1421,7 @@ function de_plugin_page() {
 				</table>
 			</form>
 		</div>
+		<?php */ ?> 
 		<?php if ( De_Language_Wrapper::has_multilanguage() ) { ?>
 		<h3><i><?php _e( 'Show languages', 'direct-edit' ); ?></i></h3>
 		<form method="post">

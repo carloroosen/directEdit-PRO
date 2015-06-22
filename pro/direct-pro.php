@@ -27,7 +27,10 @@ add_action( 'login_init', 'de_pro_login_redirect' );
 add_action( 'init', 'de_pro_extensions_include', 5 );
 add_action( 'pre_get_posts', 'de_pro_filter_posts' );
 add_action( 'template_include', 'de_pro_custom_template' );
+/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+/*
 add_action( 'template_redirect', 'de_pro_edit_menu', 2 );
+*/
 add_action( 'template_redirect', 'de_pro_404_override' );
 add_action( 'template_redirect', 'de_pro_nonactive_languages_redirect' );
 add_action( 'template_redirect', 'de_pro_perform_actions', 5 );
@@ -54,6 +57,8 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 	remove_action( 'admin_bar_menu', 'de_adjust_menu', 100 );
 
 	$uri =  explode( '/', $wp->request );
+	/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+	/*
 	if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ! empty( $uri[ 0 ] ) && ( $uri[ 0 ] == 'edit-menu' ) ) {
 		$wp_admin_bar->remove_menu( 'site-name' );
 		$wp_admin_bar->remove_menu( 'view-site' );
@@ -88,6 +93,8 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			)
 		);
 	} elseif ( get_option( 'de_tweak_backend' ) && is_admin() || get_option( 'de_tweak_frontend' ) && ! is_admin() ) {
+	*/
+	if ( get_option( 'de_tweak_backend' ) && is_admin() || get_option( 'de_tweak_frontend' ) && ! is_admin() ) {
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
 			// Remove some unwanted menuitems
@@ -290,6 +297,8 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			}
 		}
 		
+		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+		/*
 		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
 			$wp_admin_bar->add_node( array(
 					'id' => 'menu-edit',
@@ -301,6 +310,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 				)
 			);
 		}
+		*/
 	} elseif ( ! is_admin() || get_option( 'de_tweak_backend' ) && is_admin() ) {
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
@@ -408,6 +418,8 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			}
 		}
 
+		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+		/*
 		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
 			$wp_admin_bar->add_node( array(
 					'id' => 'menu-edit',
@@ -419,6 +431,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 				)
 			);
 		}
+		*/
 	}
 }
 
@@ -519,7 +532,11 @@ function de_pro_capabilities() {
 	if ( $editor && empty( $editor->capabilities[ 'edit_de_frontend' ] ) ) {
 		$editor->add_cap( 'edit_de_frontend', true );
 	}
+	/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+	/*
 	if ( ( get_option( 'de_tweak_backend' ) || get_option( 'de_tweak_frontend' ) ) && ! get_option( 'de_menu_editor_enabled' ) ) {
+	*/
+	if ( ( get_option( 'de_tweak_backend' ) || get_option( 'de_tweak_frontend' ) ) ) {
 		$editor->add_cap( 'edit_themes' );
 		$editor->add_cap( 'edit_theme_options' );
 	}
@@ -620,6 +637,8 @@ function de_pro_custom_template( $template ) {
 	return $template;
 }
 
+/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+/*
 function de_pro_edit_menu() {
 	global $wp_query;
 	global $post_type;
@@ -638,6 +657,7 @@ function de_pro_edit_menu() {
 		exit;
 	}
 }
+*/
 
 function de_pro_404_override() {
 	global $wp_query;
@@ -711,12 +731,15 @@ function de_pro_perform_actions() {
 	global $wp;
 	global $direct_queried_object;
 	
-	// Check Edit menu page permissions
 	$uri =  explode( '/', $wp->request );
+	/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+	/*
+	// Check Edit menu page permissions
 	if ( get_option( 'de_menu_editor_enabled' ) && de_get_current_template() == 'edit-menu.php' && ! ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 		wp_redirect( home_url() );
 		die();
 	}
+	*/
 	
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 		if( isset( $_GET[ 'de_show_all' ] ) ) {
@@ -928,6 +951,8 @@ function de_pro_footer_scripts() {
 	global $de_global_options;
 	global $direct_queried_object;
 
+	/* Menu editor is hidden. Probably it will be removed at all in future versions. */
+	/*
 	// Direct Menu Editor
 	if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && de_get_current_template() == 'edit-menu.php' ) {
 		?>
@@ -939,6 +964,7 @@ jQuery(document).ready(function() {
 </script>
 		<?php
 	}
+	*/
 	
 	if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
 		if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
