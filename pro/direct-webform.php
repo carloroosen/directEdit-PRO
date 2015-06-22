@@ -620,6 +620,11 @@ function de_webform_process( $template ) {
 
 			if ( empty( $de_webform_errors ) ) {
 				foreach( $_POST as $key => $value) {
+					// Let's handle arrays
+					if ( is_array( $value ) ) {
+						$value = implode( ', ', $value );
+					}
+
 					$de_webform_search[] = '{' . $key . '}';
 					$de_webform_replace[] = trim( $value );
 				}
