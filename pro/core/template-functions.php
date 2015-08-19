@@ -39,6 +39,70 @@ function direct_editable( $type, $store, $settings = array(), $echo = true ) {
 	echo $result;
 }
 
+// Use it instead of get_posts(), if you want to order posts manually
+function direct_get_posts( $args = array() ) {
+	global $wp_query;
+	
+	$wp_query = new WP_Query( $args );
+	$wp_query->parse_query( $args );
+
+	if ( $args[ 'orderby' ] == 'directedit' ) {
+		if ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) {
+			add_filter( 'post_limits', 'de_post_limits', 10, 2 );
+		}
+
+		$index = 'direct_order';
+		if( count( $wp_query->tax_query->queried_terms ) == 1 ) {		
+			foreach( $wp_query->tax_query->queried_terms as $key => $value ) {
+				if ( count( $value[ 'terms' ] ) == 1 ) {
+					$t = get_term_by( $value[ 'field' ], $value[ 'terms' ][ 0 ], $key );
+					if ( $t ) {
+						$index = $index . '_' . $t->taxonomy . '_' . $t->slug;
+					}
+				}
+			}
+		}
+		$wp_query->set( 'directedit', array( 'order' => array( 'index' => $index, 'count' => 0 ) ) );
+		add_filter( 'posts_join', 'de_posts_join', 10, 2 );
+	
+		add_filter( 'posts_orderby', 'de_posts_orderby', 10, 2 );
+	}
+
+	$wp_query->get_posts();
+	remove_filter( 'post_limits', 'de_post_limits', 10 );
+	remove_filter( 'posts_join', 'de_posts_join', 10 );
+	remove_filter( 'posts_orderby', 'de_posts_orderby', 10 );
+	//echo '<pre>';
+	//print_r( $wp_query );
+	return $wp_query;
+}
+
+function de_post_limits( $limit, $query ) {
+	return '';
+}
+
+function de_posts_join( $join, $query ) {
+	global $wpdb;
+
+	$de_options = $query->get( 'directedit' );
+	$index = $de_options[ 'order' ][ 'index' ];
+	
+	$join .= " LEFT JOIN " . $wpdb->prefix . "postmeta ON ( " . $wpdb->prefix . "posts.ID = " . $wpdb->prefix . "postmeta.post_id AND " . $wpdb->prefix . "postmeta.meta_key = '$index' )";
+	return $join;
+}
+
+function de_posts_orderby( $order, $query ) {
+	global $wpdb;
+	
+	if ( $order ) {
+		$order = $wpdb->prefix . 'postmeta.meta_value+0 ASC, ' . $order;
+	} else {
+		$order = $wpdb->prefix . 'postmeta.meta_value+0 ASC';
+	}
+
+	return $order;
+}
+
 // dE list functions
 function direct_list_have_items() {
 	global $de_snippet_list;

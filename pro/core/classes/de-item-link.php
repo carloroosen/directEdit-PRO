@@ -49,6 +49,18 @@ class De_Item_Link extends De_Item {
 				$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-show-all' : 'direct-show-all' );
 				$this->set_setting( 'attr', $attr );
 			}
+
+			// Possibility to order posts manually
+			global $wp_query;
+			if ( $this->get_setting( 'postId' ) && in_the_loop() && $wp_query->get( 'orderby' ) == 'directedit' && empty( $_SESSION[ 'de_show_all' ] ) ) {
+				$de_options = $wp_query->get( 'directedit' );
+				
+				$de_options[ 'order' ][ 'count' ] ++;
+				$this->set_setting( 'orderIndex', $de_options[ 'order' ][ 'index' ] );
+				$this->set_setting( 'orderCount', $de_options[ 'order' ][ 'count' ] );
+				
+				$wp_query->set( 'directedit', $de_options );
+			}
 		}
 	}
 
@@ -67,6 +79,12 @@ class De_Item_Link extends De_Item {
 			$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-editable' : 'direct-editable' );
 			$attr[ 'data-global-options' ] = $this->get_setting( 'options' );
 			$attr[ 'data-local-options' ] = $this->build_local_options();
+			if ( $this->store == 'post' ) {
+				global $wp_query;
+				if ( $this->get_setting( 'postId' ) && in_the_loop() && $wp_query->get( 'orderby' ) == 'directedit' && empty( $_SESSION[ 'de_show_all' ] ) ) {
+					$attr[ 'data-count' ] = get_post_meta( $this->get_setting( 'postId' ), $this->get_setting( 'orderIndex' ), true );
+				}
+			}
 		}
 		
 		$content_partial =  $this->output_partial( $content );
