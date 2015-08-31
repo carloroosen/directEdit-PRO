@@ -88,6 +88,11 @@ class De_Item_Link extends De_Item {
 		}
 		
 		$content_partial =  $this->output_partial( $content );
+		$url_parts = parse_url( $content_partial[ 'url' ] );
+		$home_url_parts = parse_url( home_url() );
+		if ( ! empty( $url_parts[ 'host' ] ) && $url_parts[ 'host' ] != $home_url_parts[ 'host' ]  ) {
+			$attr[ 'target' ] = '_blank'; 
+		}
 		$result = '<a' . self::attr_to_string( $attr ) . ' href="' . $content_partial[ 'url' ] . '">';
 		
 		return $result;
