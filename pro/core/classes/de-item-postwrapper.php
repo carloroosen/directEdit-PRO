@@ -1,17 +1,13 @@
 <?php
-class De_Item_Link extends De_Item {
+class De_Item_Postwrapper extends De_Item {
 	public function __construct( $store, $settings ) {
 		parent::__construct( $store, $settings );
 		
-		if ( ! $this->get_setting( 'type' ) || $this->get_setting( 'type' ) != 'link' ) {
+		if ( ! $this->get_setting( 'type' ) || $this->get_setting( 'type' ) != 'postwrapper' ) {
 			$this->delete_setting( 'type' );
-			if ( $this->store == 'post' ) {
-				$this->set_setting( 'options', 'link-post' );
-			} else {
-				$this->set_setting( 'options', 'link' );
-			}
+			$this->set_setting( 'options', 'postwrapper' );
 		}
-		
+
 		// Set proper Show/Hide button
 		if ( $this->get_setting( 'buttonShow' ) && $this->get_setting( 'buttonShow' ) !== 'no' && $this->get_setting( 'buttonShow' ) !== 'false' ) {
 			$this->set_setting( 'buttonShow', false );
@@ -66,7 +62,12 @@ class De_Item_Link extends De_Item {
 
 	public function output( $content = null ) {
 		$attr = array();
-		
+
+		if ( $this->get_setting( 'container' ) ) {
+			$container = $this->get_setting( 'container' );
+		} else {
+			$container = 'div';
+		}
 		if ( $this->get_setting( 'attr' ) && is_array( $this->get_setting( 'attr' ) ) ) {
 			$attr = $this->get_setting( 'attr' );
 		}
@@ -87,28 +88,12 @@ class De_Item_Link extends De_Item {
 			}
 		}
 		
-		$content_partial =  $this->output_partial( $content );
-		$url_parts = parse_url( $content_partial[ 'url' ] );
-		$home_url_parts = parse_url( home_url() );
-		if ( ! empty( $url_parts[ 'host' ] ) && $url_parts[ 'host' ] != $home_url_parts[ 'host' ]  ) {
-			$attr[ 'target' ] = '_blank'; 
-		}
-		$result = '<a' . self::attr_to_string( $attr ) . ' href="' . $content_partial[ 'url' ] . '">';
+		$result = '<' . $container . self::attr_to_string( $attr ) . '>';
 		
 		return $result;
 	}
 	
 	public function output_partial( $content = null ) {
-		if ( ! strlen( $content ) ) {
-			if ( ! $this->get_setting( 'default' ) ) {
-				$content = '#';
-			} else {
-				$content = $this->get_setting( 'default' );
-			}
-		}
-		
-		$content = de_encode_emails( $content );
-		
-		return array( 'url' => $content );
+		return null;
 	}
 }
