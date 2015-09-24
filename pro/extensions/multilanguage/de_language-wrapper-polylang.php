@@ -293,8 +293,12 @@ function de_translate_menu_items( $items ) {
 	return $items;
 }
 
-function de_polylang_prevent_redirects() {
-	return false;
+function de_polylang_prevent_redirects( $redirect_url ) {
+	if ( get_query_var( 'p' ) ) {
+		return $redirect_url;
+	} else {
+		return false;
+	}
 }
 
 function de_on_language_add( $string ) {
