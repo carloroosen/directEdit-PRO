@@ -128,7 +128,7 @@ function de_webform_email_user_metabox( $post ) {
 	$newPage = ( basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' );
 	
 	$useUserEmail = get_post_meta( $postId, 'de_use_user_email', true );
-	$userFromUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_from_use_global', true ) );
+	$userFromUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_from_use_global', true ) );
 	//$userEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
 	$userEmailFrom = ( $newPage ? '' : get_post_meta( $postId, 'de_user_email_from', true ) );
 	$userToUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_to_use_global', true ) );
@@ -641,7 +641,11 @@ function de_webform_process( $template ) {
 					if ( $de_webform_use_admin_email ) {
 						//if( filter_var( $adminEmailFrom, FILTER_VALIDATE_EMAIL ) && filter_var( $adminEmailTo, FILTER_VALIDATE_EMAIL ) ) {
 							$blogname = wp_specialchars_decode( get_option('blogname'), ENT_QUOTES );
-							$headers = 'From: ' . $blogname . ' <' . $adminEmailFrom . ">\r\n";
+							if ( get_option( 'de_global_admin_email' ) == $adminEmailFrom ) {
+								$headers = 'From: ' . $blogname . ' <' . $adminEmailFrom . ">\r\n";
+							} else {
+								$headers = 'From: ' . $adminEmailFrom . "\r\n";
+							}
 							if ( $adminEmailToBcc ) {
 								$headers .= 'Bcc: ' . $adminEmailToBcc . "\r\n";
 							}
