@@ -16,6 +16,13 @@ if ( DIRECT_MODE == 'PLUGIN' ) {
 	$de_update_checker->addQueryArgFilter( 'de_pro_add_updates_key' );
 }
 
+// Remove new user notification
+if ( ! function_exists( 'wp_new_user_notification' ) ) {
+	function wp_new_user_notification( $user_id, $deprecated = null, $notify = '' ) {
+		return;
+	}
+}
+
 // General setup
 add_action( 'admin_bar_menu', 'de_pro_tweak_menu', 90 );
 add_action( 'after_setup_theme', 'de_pro_remove_admin_bar' );
