@@ -126,7 +126,7 @@ class De_Language_Wrapper {
 	public static function get_language_post( $post_id, $lang, $get_all = true ) {
 		$lang_post_id = pll_get_post( $post_id, $lang );
 
-		if ( $lang_post_id && ( ! de_is_hidden( $lang_post_id ) || ( ( current_user_can( 'edit_posts' ) || current_user( 'edit_de_frontend' ) ) && $get_all ) ) ) {
+		if ( $lang_post_id && ( ! de_is_hidden( $lang_post_id ) || ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && $get_all ) ) ) {
 			return get_post( $lang_post_id );
 		} else {
 			return null;
