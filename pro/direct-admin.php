@@ -7,6 +7,7 @@ add_action( 'admin_menu', 'de_plugin_menu' );
 add_action( 'do_meta_boxes', 'de_remove_more_metaboxes' );
 add_action( 'pre_get_posts', 'de_remove_metaboxes' );
 add_action( 'save_post','de_metaboxes_save', 1000, 2 );
+add_action( 'user_new_form', 'de_no_user_notification' );
 
 add_filter( 'get_sample_permalink_html', 'de_replace_permalink', 10, 2 );
 add_filter( 'page_row_actions', 'de_remove_row_actions', 10, 1 );
@@ -1503,6 +1504,16 @@ function de_metaboxes_save( $post_id, $post ) {
 			update_post_meta( $post->ID, 'de_wp_hooks', base64_encode( serialize( $_POST['de_wp_hooks'] ) ) );
 		}
 	}
+}
+
+function de_no_user_notification() {
+	?>
+	<script>
+		jQuery(function() {
+			jQuery( "p:contains('<?php _e( 'A password reset link will be sent to the user via email.' ); ?>')" ).remove();
+		});
+	</script>
+	<?php
 }
 
 function de_replace_permalink( $return, $post_id ) {
