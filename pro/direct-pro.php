@@ -229,7 +229,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 				}
 
 				if ( ! is_admin() ) {
-					if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
+					if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) && current_user_can( 'edit_post', $direct_queried_object->ID ) ) {
 						$wp_admin_bar->add_node( array(
 								'id' => 'page-options',
 								'title' => __( 'Page options', 'direct-edit' ),
@@ -265,7 +265,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						}
 						
 						// We can't delete webforms in frontend
-						if ( de_is_deleteable( $direct_queried_object->ID ) && ! in_array( $direct_queried_object->post_type, array( 'de_webform' ) ) ) {
+						if ( de_is_deleteable( $direct_queried_object->ID ) && ! in_array( $direct_queried_object->post_type, array( 'de_webform' ) ) && current_user_can( 'delete_post', $direct_queried_object->ID ) ) {
 							$wp_admin_bar->add_node( array(
 									'id' => 'post-delete',
 									'title' => __('Delete'),
@@ -321,7 +321,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			);
 		}
 		*/
-	} elseif ( ! is_admin() || get_option( 'de_tweak_backend' ) && is_admin() ) {
+	} elseif ( ! is_admin() ) {
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
 			$wp_admin_bar->remove_menu( 'edit' );
@@ -352,85 +352,81 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					);
 				}
 
-				if ( ! is_admin() ) {
-					if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
-						$wp_admin_bar->add_node( array(
-								'id' => 'page-options',
-								'title' => __( 'Page options', 'direct-edit' ),
-								'parent' => '',
-								'href' => '#',
-								'group' => '',
-								'meta' => array( 'title' => __( 'Page options', 'direct-edit' ) )
-							)
-						);
-						
-						if ( de_is_hideable( $direct_queried_object->ID ) ) {
-							if ( de_is_hidden( $direct_queried_object->ID ) ) {
-								$wp_admin_bar->add_node( array(
-										'id' => 'post-show',
-										'title' => __('Show'),
-										'parent' => '',
-										'href' => add_query_arg( array( 'de_show' => 1 ), get_permalink( $direct_queried_object->ID ) ),
-										'group' => '',
-										'meta' => array( 'title' => __('Show') )
-									)
-								);
-							} else {
-								$wp_admin_bar->add_node( array(
-										'id' => 'post-hide',
-										'title' => __('Hide'),
-										'parent' => '',
-										'href' => add_query_arg( array( 'de_hide' => 1 ), get_permalink( $direct_queried_object->ID ) ),
-										'group' => '',
-										'meta' => array( 'title' => __('Hide') )
-									)
-								);
-							}
-						}
-						
-						// We can't delete webforms in frontend
-						if ( de_is_deleteable( $direct_queried_object->ID ) && ! in_array( $direct_queried_object->post_type, array( 'de_webform' ) ) ) {
+				if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) && current_user_can( 'edit_post', $direct_queried_object->ID ) ) {
+					$wp_admin_bar->add_node( array(
+							'id' => 'page-options',
+							'title' => __( 'Page options', 'direct-edit' ),
+							'parent' => '',
+							'href' => '#',
+							'group' => '',
+							'meta' => array( 'title' => __( 'Page options', 'direct-edit' ) )
+						)
+					);
+					
+					if ( de_is_hideable( $direct_queried_object->ID ) ) {
+						if ( de_is_hidden( $direct_queried_object->ID ) ) {
 							$wp_admin_bar->add_node( array(
-									'id' => 'post-delete',
-									'title' => __('Delete'),
+									'id' => 'post-show',
+									'title' => __('Show'),
 									'parent' => '',
-									'href' => add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ),
+									'href' => add_query_arg( array( 'de_show' => 1 ), get_permalink( $direct_queried_object->ID ) ),
 									'group' => '',
-									'meta' => array(
-										'title' => __('Delete'),
-										'onclick' => 'return confirm( "' . __( 'Delete this page in all languages' ) . '" );'
-									)
+									'meta' => array( 'title' => __('Show') )
+								)
+							);
+						} else {
+							$wp_admin_bar->add_node( array(
+									'id' => 'post-hide',
+									'title' => __('Hide'),
+									'parent' => '',
+									'href' => add_query_arg( array( 'de_hide' => 1 ), get_permalink( $direct_queried_object->ID ) ),
+									'group' => '',
+									'meta' => array( 'title' => __('Hide') )
 								)
 							);
 						}
 					}
 					
-					$show = $_SESSION[ 'de_show_all' ];
-					$wp_admin_bar->add_menu( array(
-						'parent' => '',
-						'id' => 'show-all',
-						'title' => sprintf( '<input name="de_show_all" type="checkbox" value="1" %s /> %s', $show ? 'checked="checked"' : '', __( 'Show all', 'direct-edit' ) ),
-						'href' => add_query_arg( 'de_show_all', $show ? '0' : '1', $_SERVER['REQUEST_URI'] )
-					) );
+					// We can't delete webforms in frontend
+					if ( de_is_deleteable( $direct_queried_object->ID ) && ! in_array( $direct_queried_object->post_type, array( 'de_webform' ) ) && current_user_can( 'delete_post', $direct_queried_object->ID ) ) {
+						$wp_admin_bar->add_node( array(
+								'id' => 'post-delete',
+								'title' => __('Delete'),
+								'parent' => '',
+								'href' => add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ),
+								'group' => '',
+								'meta' => array(
+									'title' => __('Delete'),
+									'onclick' => 'return confirm( "' . __( 'Delete this page in all languages' ) . '" );'
+								)
+							)
+						);
+					}
 				}
+				
+				$show = $_SESSION[ 'de_show_all' ];
+				$wp_admin_bar->add_menu( array(
+					'parent' => '',
+					'id' => 'show-all',
+					'title' => sprintf( '<input name="de_show_all" type="checkbox" value="1" %s /> %s', $show ? 'checked="checked"' : '', __( 'Show all', 'direct-edit' ) ),
+					'href' => add_query_arg( 'de_show_all', $show ? '0' : '1', $_SERVER['REQUEST_URI'] )
+				) );
 			}
 			
-			if ( ! is_admin() ) {
-				$wp_admin_bar->add_node( array(
-						'id' => 'save-page',
-						'title' => __( 'Save page', 'direct-edit' ),
-						'parent' => '',
-						'href' => '#',
-						'group' => '',
-						'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
-					)
-				);
-			}
+			$wp_admin_bar->add_node( array(
+					'id' => 'save-page',
+					'title' => __( 'Save page', 'direct-edit' ),
+					'parent' => '',
+					'href' => '#',
+					'group' => '',
+					'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
+				)
+			);
 		}
 
 		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
 		/*
-		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
+		if ( ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
 			$wp_admin_bar->add_node( array(
 					'id' => 'menu-edit',
 					'title' => __( 'Edit menu', 'direct-edit' ),

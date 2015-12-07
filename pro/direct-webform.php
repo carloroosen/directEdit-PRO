@@ -695,6 +695,8 @@ function de_webform_process( $template ) {
 			}
 			
 			// Delete files after sending them
+			do_action( 'de_webform_handle_uploads', $post, $uploads_to_delete );
+			$uploads_to_delete = apply_filters( 'de_webform_save_uploads', $uploads_to_delete, $post );
 			foreach ( $uploads_to_delete as $upload_to_delete ) {
 				@unlink( $upload_to_delete );
 			}
