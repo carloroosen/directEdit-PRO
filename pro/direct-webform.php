@@ -1,6 +1,5 @@
 <?php
 // Global form variables
-global $de_webform_id;
 global $de_webform_errors;
 global $de_webform_messages;
 global $de_webform_values;
@@ -11,6 +10,7 @@ global $de_webform_use_user_email;
 global $de_webform_success_page;
 global $de_webform_success_message;
 global $de_webform_admin_attachments;
+global $de_webform_redirect;
 $de_webform_admin_attachments = array();
 global $de_webform_user_attachments;
 $de_webform_user_attachments = array();
@@ -25,6 +25,9 @@ add_action( 'de_webform_form_action', 'de_webform_action' );
 add_action( 'save_post', 'de_webform_save_template', 10, 2 );
 add_action( 'template_include', 'de_webform_set_template', 0 );
 add_action( 'template_include', 'de_webform_process', 20 );
+add_action( 'wp_ajax_direct-webform', 'de_webform_ajax' );
+add_action( 'wp_ajax_nopriv_direct-webform', 'de_webform_ajax' );
+add_action( 'wp_footer', 'de_webform_js', 20 );
 
 function de_webform_add_template_metabox() {
 	add_meta_box( 'de_webform_general', __( 'General', 'direct-edit' ), 'de_webform_general_metabox', 'de_webform', 'normal', 'core' );
@@ -37,11 +40,23 @@ function de_webform_general_metabox( $post ) {
 	global $wp_post_types;
 
 	$postId = $post->ID;
-	
+
+	$jsIdentifier = get_post_meta( $postId, 'de_js_identifier', true );
+	$ajaxForm = get_post_meta( $postId, 'de_ajax_form', true );	
 	$successPage = get_post_meta( $postId, 'de_success_page', true );
 	$successMessage = get_post_meta( $postId, 'de_success_message', true );
 	
 	echo '<fieldset>';
+	echo '<label for="de_js_identifier">' . __( 'Form identifier', 'direct-edit' ) . '</label>';
+	echo '<br />';
+	echo '<input type="text" id="de_js_identifier" name="de_js_identifier" value="' . esc_attr( $jsIdentifier ) . '" size="25" />';
+	echo '<br />';
+	echo '<br />';
+	echo '<input type="hidden" name="de_ajax_form" value="0" />';
+	echo '<input type="checkbox" id="de_ajax_form" name="de_ajax_form" value="1"' . ( $ajaxForm ? ' checked="checked"' : '' ) . ' />';
+	echo ' <label for="de_ajax_form">' . __( 'Ajax webform', 'direct-edit' ) . '</label>';
+	echo '<br />';
+	echo '<br />';
 	echo '<label for="de_success_page">' . __( 'Success page', 'direct-edit' ) . '</label>';
 	echo '<br />';
 	echo '<input type="text" id="de_success_page" name="de_success_page" value="' . esc_attr( $successPage ) . '" size="25" />';
@@ -499,6 +514,8 @@ function de_webform_save_template( $post_id, $post ) {
 		if ( basename( $_SERVER['PHP_SELF'] ) == 'post.php' || basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' ) {
 			update_post_meta( $post->ID, 'de_webform_template', $_POST['de_webform_template'] );
 			
+			update_post_meta( $post->ID, 'de_js_identifier', $_POST['de_js_identifier'] );
+			update_post_meta( $post->ID, 'de_ajax_form', $_POST['de_ajax_form'] );
 			update_post_meta( $post->ID, 'de_success_page', $_POST['de_success_page'] );
 			update_post_meta( $post->ID, 'de_success_message', $_POST['de_success_message'] );
 			
@@ -539,7 +556,7 @@ function de_webform_set_template( $template ) {
 	return $template;
 }
 
-function de_webform_process( $template ) {
+function de_webform_process( $template = null ) {
 	global $post;
 	global $de_webform_errors;
 	global $de_webform_messages;
@@ -551,6 +568,7 @@ function de_webform_process( $template ) {
 	global $de_webform_success_message;
 	global $de_webform_admin_attachments;
 	global $de_webform_user_attachments;
+	global $de_webform_redirect;
 
 	$de_webform_search = array();
 	$de_webform_replace = array();
@@ -578,7 +596,7 @@ function de_webform_process( $template ) {
 		$userEmailAttachUploads = get_post_meta( $postId, 'de_user_attach_uploads', true );
 
 		do_action( 'de_webform_form_setup', $post );
-		
+
 		if( $_SERVER[ 'REQUEST_METHOD' ] == 'POST' ) {
 			// Check uploads
 			$uploads_to_delete = array();
@@ -686,8 +704,13 @@ function de_webform_process( $template ) {
 					if ( $de_webform_success_page ) {
 						$link = str_replace( $de_webform_search, $de_webform_replace, $de_webform_success_page );
 						$link = ( strpos( $link, 'http://' ) === false && strpos( $link, 'https://' ) === false ? get_bloginfo( 'url' ) . $link : $link );
-						if ( $link )
-							header( 'Location: ' . $link );
+						if ( $link ) {
+							if ( $template ) {
+								header( 'Location: ' . $link );
+							} else {
+								$de_webform_redirect = $link;
+							}
+						}
 					} elseif( $de_webform_success_message ) {
 						$de_webform_messages[] = str_replace( $de_webform_search, $de_webform_replace, $de_webform_success_message );
 					}
@@ -706,12 +729,83 @@ function de_webform_process( $template ) {
 	return $template;
 }
 
-// Redirect helper
-function de_webform_conditional_redirect( $location, $form_id = '' ) {
-	global $de_webform_id;
+function de_webform_ajax() {
+	global $post;
+	global $de_webform_errors;
+	global $de_webform_messages;
+	global $de_webform_redirect;
+
+	$response = array();
+
+	if ( ! empty( $_REQUEST[ 'post_id' ] ) && get_post( $_REQUEST[ 'post_id' ] ) ) {
+		$post = get_post( $_REQUEST[ 'post_id' ] );
+
+		de_webform_process();
+
+		if ( ! empty( $de_webform_errors ) ) {
+			$response[ 'errors' ] = '<p>' . implode( '<br />', $de_webform_errors ) . '</p>';
+		} elseif ( ! empty( $de_webform_redirect ) ) {
+				$response[ 'redirect' ] = $de_webform_redirect;
+		} elseif ( ! empty( $de_webform_messages ) && count( $de_webform_messages ) ) {
+				$response[ 'messages' ] = '<p>' . implode( '', $de_webform_messages ) . '</p>';
+		}
+	}
 	
+	echo json_encode( $response );
+	
+	die();
+}
+
+function de_webform_js() {
+	global $direct_queried_object;
+	
+    if ( $direct_queried_object->post_type == 'de_webform' && ! empty( $direct_queried_object->ID ) && get_post_meta( $direct_queried_object->ID, 'de_ajax_form', true ) ) {
+		$webform_id = get_post_meta( $direct_queried_object->ID, 'de_js_identifier', true );
+
+		$js = 
+		"<script>
+			jQuery(document).ready(function() {
+				jQuery('form" . ( $webform_id ? '#' . $webform_id : '' ) . "').submit(function(e) {
+					var self = this;
+					e.preventDefault();
+					
+					jQuery.ajax({
+						url: '" . add_query_arg( array( 'action' => 'direct-webform', 'post_id' => $direct_queried_object->ID ), admin_url( 'admin-ajax.php' ) ) . "',
+						type: 'POST',
+						error: function () {
+						},
+						dataType: 'json',
+						success: function (result) {
+							if (result['errors']) {
+								jQuery('<div></div>').insertBefore(jQuery(self)).attr('id', 'de_webform_errors').append(result['errors']);
+							} else if (result['redirect']) {
+								window.location = result['redirect'];
+							} else if (result['messages']) {
+								jQuery('<div></div>').insertBefore(jQuery(self)).attr('id', 'de_webform_messages').append(result['messages']).append('<a href=\"#\" id=\"de_webform_show_form\">Show form</a>');
+								jQuery(self).fadeOut();
+								jQuery('#de_webform_show_form').click(function(e) {
+									e.preventDefault();
+									
+									jQuery(self).fadeIn();
+									jQuery('#de_webform_messages').remove();
+								});
+							}
+						},
+						data: new FormData(this),
+						processData: false,
+						contentType: false
+					});
+				});
+			});
+		</script>";
+		$js = apply_filters( 'de_webform_webform_js', $js, $post );
+		echo $js;
+	}
+}
+
+// Redirect helper
+function de_webform_conditional_redirect( $location ) {
 	if ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) {
-		$de_webform_id = $form_id;
 		add_action( 'wp_print_footer_scripts', 'de_webform_disable', 10 );
 	} else {
 		wp_redirect( $location );
@@ -720,12 +814,13 @@ function de_webform_conditional_redirect( $location, $form_id = '' ) {
 }
 
 function de_webform_disable() {
-	global $de_webform_id;
+	global $direct_queried_object;
 	
+	$webform_id = get_post_meta( $direct_queried_object->ID, 'de_js_identifier', true );
 	?>
 <script>
 	jQuery(document).ready(function() {
-		jQuery('form<?php echo ( $de_webform_id ? '#' . $de_webform_id : '' ); ?>').submit(function() {return false});
+		jQuery('form<?php echo ( $webform_id ? '#' . $webform_id : '' ); ?>').submit(function() {return false});
 	});
 </script>
 	<?php

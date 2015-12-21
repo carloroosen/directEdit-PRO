@@ -502,8 +502,9 @@ function de_pro_create_post_types() {
 				'name' => __( 'List items', 'direct-edit' ),
 				'singular_name' => __( 'List item', 'direct-edit' )
 			),
-		'public' => true,
-		'rewrite' => array( 'slug' => 'list_items' )
+			'public' => true,
+			'exclude_from_search' => true,
+			'rewrite' => array( 'slug' => 'list_items' )
 		)
 	);
 
