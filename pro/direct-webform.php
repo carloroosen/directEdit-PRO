@@ -765,8 +765,18 @@ function de_webform_js() {
 		$js = 
 		"<script>
 			jQuery(document).ready(function() {
-				jQuery('form" . ( $webform_id ? '#' . $webform_id : '' ) . "').submit(function(e) {
-					var self = this;
+				var \$form = jQuery('form" . ( $webform_id ? '#' . $webform_id : '' ) . "');
+
+				jQuery('<div>').insertBefore(\$form).attr('id', 'de_webform_errors').hide();
+				jQuery('<div>').insertBefore(\$form).attr('id', 'de_webform_messages').append('<div id=\"de_webform_messages_text\">').append('<a href=\"#\" id=\"de_webform_show_form\">Show form</a>').hide();
+				jQuery('#de_webform_show_form').click(function(e) {
+					e.preventDefault();
+					
+					\$form.fadeIn('slow');
+					jQuery('#de_webform_messages').fadeOut('slow');
+				});
+
+				\$form.submit(function(e) {
 					e.preventDefault();
 					
 					jQuery.ajax({
@@ -777,18 +787,17 @@ function de_webform_js() {
 						dataType: 'json',
 						success: function (result) {
 							if (result['errors']) {
-								jQuery('<div></div>').insertBefore(jQuery(self)).attr('id', 'de_webform_errors').append(result['errors']);
+								jQuery('#de_webform_errors').hide();
+								jQuery('#de_webform_errors').html(result['errors']);
+								jQuery('#de_webform_errors').fadeIn('slow');
+								\$form.fadeOut('slow');
 							} else if (result['redirect']) {
 								window.location = result['redirect'];
 							} else if (result['messages']) {
-								jQuery('<div></div>').insertBefore(jQuery(self)).attr('id', 'de_webform_messages').append(result['messages']).append('<a href=\"#\" id=\"de_webform_show_form\">Show form</a>');
-								jQuery(self).fadeOut();
-								jQuery('#de_webform_show_form').click(function(e) {
-									e.preventDefault();
-									
-									jQuery(self).fadeIn();
-									jQuery('#de_webform_messages').remove();
-								});
+								jQuery('#de_webform_messages').hide();
+								jQuery('#de_webform_messages_text').html(result['messages']);
+								jQuery('#de_webform_messages').fadeIn('slow');
+								\$form.fadeOut('slow');
 							}
 						},
 						data: new FormData(this),
