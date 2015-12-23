@@ -790,7 +790,6 @@ function de_webform_js() {
 								jQuery('#de_webform_errors').hide();
 								jQuery('#de_webform_errors').html(result['errors']);
 								jQuery('#de_webform_errors').fadeIn('slow');
-								\$form.fadeOut('slow');
 							} else if (result['redirect']) {
 								window.location = result['redirect'];
 							} else if (result['messages']) {
