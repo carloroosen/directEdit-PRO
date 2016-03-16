@@ -1274,7 +1274,7 @@ function de_pro_seo() {
 function de_pro_wpseo_title( $title ) {
 	global $direct_queried_object;
 	
-	if ( de_is_de_archive( $direct_queried_object->ID ) ) {
+	if ( ! empty( $direct_queried_object ) && de_is_de_archive( $direct_queried_object->ID ) ) {
 		$title = get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_title', true );
 		return wpseo_replace_vars( ( $title ? $title : '%%title%%' ) . ' %%sep%% %%sitename%%', $direct_queried_object );
 	} else {
@@ -1285,7 +1285,7 @@ function de_pro_wpseo_title( $title ) {
 function de_pro_wpseo_metadesc( $desc ) {
 	global $direct_queried_object;
 	
-	if ( de_is_de_archive( $direct_queried_object->ID ) ) {
+	if ( ! empty( $direct_queried_object ) && de_is_de_archive( $direct_queried_object->ID ) ) {
 		return get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_metadesc', true );
 	} else {
 		return $desc;
