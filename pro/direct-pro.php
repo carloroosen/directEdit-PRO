@@ -270,7 +270,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 									'id' => 'post-delete',
 									'title' => __('Delete'),
 									'parent' => '',
-									'href' => add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ),
+									'href' => wp_nonce_url( add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ), 'de_nonce_check', '_de_nonce' ),
 									'group' => '',
 									'meta' => array(
 										'title' => __('Delete'),
@@ -393,7 +393,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 								'id' => 'post-delete',
 								'title' => __('Delete'),
 								'parent' => '',
-								'href' => add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ),
+								'href' => wp_nonce_url( add_query_arg( array( 'de_delete' => 1 ), get_permalink( $direct_queried_object->ID ) ), 'de_nonce_check', '_de_nonce' ),
 								'group' => '',
 								'meta' => array(
 									'title' => __('Delete'),
@@ -794,6 +794,8 @@ function de_pro_perform_actions() {
 			}
 			if( ! empty( $_GET[ 'de_delete' ] ) ) {
 				// Hi Carlo, I dedicate this piece of crazy code to you
+				check_admin_referer( 'de_nonce_check', '_de_nonce' );
+
 				$redirect = '';
 
 				if ( $direct_queried_object->post_type == 'page' ) {
