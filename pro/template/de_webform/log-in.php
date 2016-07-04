@@ -27,7 +27,9 @@ if ( ! empty( $de_webform_messages ) ) {
 			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
 		?>
 			<form method="post">
+				<?php if ( get_option( 'de_honeypot' ) ) { ?>
 				<input class="question" name="question" type="text">
+				<?php  } ?>
 				<p>
 				<label for="email"><em>&nbsp;</em><?php _e( 'Email', 'direct-edit' ); ?></label>
 				<input id="email" name="email" type="email" class="required email" value="<?php echo esc_attr( $de_webform_values[ 'email' ] ); ?>" />
@@ -42,10 +44,17 @@ if ( ! empty( $de_webform_messages ) ) {
 			<form method="post">
 				<p>
 				<label for="password"><em>&nbsp;</em><?php _e( 'New password', 'direct-edit' ); ?></label>
-				<input id="password_new" name="password_new" type="password" class="required" />
+				<input id="password" name="password" type="password" class="required" />
 				</p>
 				<p>
-				<input id="send" name="send" value="send" type="submit" />
+				<label for="password_retyped"><em>&nbsp;</em><?php _e( 'Retype new password', 'direct-edit' ); ?></label>
+				<input id="password_retyped" name="password_retyped" type="password" class="required" />
+				</p>
+				<p>
+				<span id="password-strength"></span>
+				</p>
+				<p>
+				<input id="send" name="send" value="send" type="submit" disabled="disabled" />
 				</p>
 			</form>
 		<?php

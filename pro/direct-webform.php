@@ -27,7 +27,9 @@ add_action( 'template_include', 'de_webform_set_template', 0 );
 add_action( 'template_include', 'de_webform_process', 20 );
 add_action( 'wp_ajax_direct-webform', 'de_webform_ajax' );
 add_action( 'wp_ajax_nopriv_direct-webform', 'de_webform_ajax' );
+add_action( 'wp_enqueue_scripts', 'de_webform_scripts_and_styles' );
 add_action( 'wp_footer', 'de_webform_js', 20 );
+add_action( 'wp_head', 'de_webform_css' );
 
 function de_webform_add_template_metabox() {
 	add_meta_box( 'de_webform_general', __( 'General', 'direct-edit' ), 'de_webform_general_metabox', 'de_webform', 'normal', 'core' );
@@ -410,13 +412,13 @@ function de_webform_validate( $post ) {
 			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
 				$user_data = get_userdata( $user_ID );
 				
-				$de_webform_values[ 'password_new' ] = sanitize_text_field( $_POST[ 'password_new' ] );
+				$de_webform_values[ 'password' ] = sanitize_text_field( $_POST[ 'password' ] );
 				
-				if( empty( $de_webform_values[ 'password_new' ] ) ) {
-					$de_webform_errors[ 'password_new' ] = __( 'You have no password specified.', 'direct-edit' );
+				if( empty( $de_webform_values[ 'password' ] ) ) {
+					$de_webform_errors[ 'password' ] = __( 'You have no password specified.', 'direct-edit' );
 				}
-				if( get_option( 'de_strong_passwords' ) && de_check_password_strength( $de_webform_values[ 'password_new' ], $user_data->user_login ) != 4 ) {
-					$de_webform_errors[ 'password_new' ] = __( 'Please make the password a strong one.', 'direct-edit' );
+				if( get_option( 'de_strong_passwords' ) && de_check_password_strength( $de_webform_values[ 'password' ], $user_data->user_login ) != 4 ) {
+					$de_webform_errors[ 'password' ] = __( 'Please make the password a strong one.', 'direct-edit' );
 				}
 			}
 		} else {
@@ -473,7 +475,7 @@ function de_webform_action( $post ) {
 				$de_webform_success_message = __( 'An email with a login link has been sent to {email}.', 'direct-edit' );
 				$de_webform_use_user_email = 1;
 			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
-				wp_set_password( $de_webform_values[ 'password_new' ], $user_ID );
+				wp_set_password( $de_webform_values[ 'password' ], $user_ID );
 				
 				$de_webform_success_page = de_get_login_form_permalink();
 			}
@@ -756,9 +758,18 @@ function de_webform_ajax() {
 	die();
 }
 
+function de_webform_scripts_and_styles() {
+	global $direct_queried_object;
+
+	if ( ( $direct_queried_object->ID == get_option( 'de_login_form' ) || de_is_language_post( $direct_queried_object->ID, get_option( 'de_login_form' ) ) ) && ! empty( $_REQUEST[ 'action' ] ) && $_REQUEST[ 'action' ] == 'set-new-password' ) {
+		wp_enqueue_script( 'password-strength-meter' );
+	}	
+}
+
 function de_webform_js() {
 	global $direct_queried_object;
 	
+    // Ajax functionality
     if ( $direct_queried_object->post_type == 'de_webform' && ! empty( $direct_queried_object->ID ) && get_post_meta( $direct_queried_object->ID, 'de_ajax_form', true ) ) {
 		$webform_id = get_post_meta( $direct_queried_object->ID, 'de_js_identifier', true );
 
@@ -809,6 +820,105 @@ function de_webform_js() {
 		$js = apply_filters( 'de_webform_webform_js', $js, $post );
 		echo $js;
 	}
+
+	// Password Strength Meter
+	if ( ( $direct_queried_object->ID == get_option( 'de_login_form' ) || de_is_language_post( $direct_queried_object->ID, get_option( 'de_login_form' ) ) ) && ! empty( $_REQUEST[ 'action' ] ) && $_REQUEST[ 'action' ] == 'set-new-password' ) {
+		?>
+<script>
+function checkPasswordStrength( $pass1,
+                                $pass2,
+                                $strengthResult,
+                                $submitButton,
+                                blacklistArray ) {
+        var pass1 = $pass1.val();
+    var pass2 = $pass2.val();
+ 
+    // Reset the form & meter
+    $submitButton.attr( 'disabled', 'disabled' );
+        $strengthResult.removeClass( 'short bad good strong' );
+ 
+    // Extend our blacklist array with those from the inputs & site data
+    blacklistArray = blacklistArray.concat( wp.passwordStrength.userInputBlacklist() )
+ 
+    // Get the password strength
+    var strength = wp.passwordStrength.meter( pass1, blacklistArray, pass2 );
+ 
+    // Add the strength meter results
+    switch ( strength ) {
+ 
+        case 2:
+            $strengthResult.addClass( 'bad' ).html( pwsL10n.bad );
+            break;
+ 
+        case 3:
+            $strengthResult.addClass( 'good' ).html( pwsL10n.good );
+            break;
+ 
+        case 4:
+            $strengthResult.addClass( 'strong' ).html( pwsL10n.strong );
+            break;
+ 
+        case 5:
+            $strengthResult.addClass( 'short' ).html( pwsL10n.mismatch );
+            break;
+ 
+        default:
+            $strengthResult.addClass( 'short' ).html( pwsL10n.short );
+ 
+    }
+ 
+    // The meter function returns a result even if pass2 is empty,
+    // enable only the submit button if the password is strong and
+    // both passwords are filled up
+    if ( 4 === strength && '' !== pass2.trim() ) {
+        $submitButton.removeAttr( 'disabled' );
+    }
+ 
+    return strength;
+}
+ 
+jQuery( document ).ready( function( $ ) {
+    // Binding to trigger checkPasswordStrength
+    $( 'body' ).on( 'keyup', 'input[name=password], input[name=password_retyped]',
+        function( event ) {
+            checkPasswordStrength(
+                $('input[name=password]'),         // First password field
+                $('input[name=password_retyped]'), // Second password field
+                $('#password-strength'),           // Strength meter
+                $('input[type=submit]'),           // Submit button
+                ['black', 'listed', 'word']        // Blacklisted words
+            );
+        }
+    );
+});
+</script>
+	<?php
+	}	
+}
+
+function de_webform_css() {
+	?>
+	<style>
+#password-strength{
+	background-color:#eee;border-color:#ddd!important;
+}
+#password-strength.bad{
+	background-color:#ffb78c;
+	border-color:#ff853c!important;
+}
+#password-strength.good{
+	background-color:#ffec8b;
+	border-color:#fc0!important;
+}
+#password-strength.short{
+	background-color:#ffa0a0;
+	border-color:#f04040!important;
+}
+#password-strength.strong{
+	background-color:#c3ff88;border-color:#8dff1c!important;
+}
+	</style>
+	<?php
 }
 
 // Redirect helper
