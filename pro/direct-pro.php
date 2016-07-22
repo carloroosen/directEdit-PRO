@@ -280,30 +280,54 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							);
 						}
 					}
-					
-					$show = '';
-					if ( isset($_SESSION[ 'de_show_all' ]) ) {
-						$show = $_SESSION[ 'de_show_all' ];
-					}
-					$wp_admin_bar->add_menu( array(
+										
+					$wp_admin_bar->add_node( array(
+						'id' => 'mode',
+						'title' => __( 'Mode', 'direct-edit' ),
 						'parent' => '',
-						'id' => 'show-all',
-						'title' => sprintf( '<input name="de_show_all" type="checkbox" value="1" %s /> %s', $show ? 'checked="checked"' : '', __( 'Show all', 'direct-edit' ) ),
-						'href' => add_query_arg( 'de_show_all', $show ? '0' : '1', $_SERVER['REQUEST_URI'] )
+						'href' => '#',
+						'group' => '',
+						'meta' => array( 'title' => __( 'Mode', 'direct-edit' ) )
+					) );
+					
+					$wp_admin_bar->add_node( array(
+						'id' => 'mode-view',
+						'title' => __( 'View mode', 'direct-edit' ),
+						'parent' => 'mode',
+						'href' => add_query_arg( array( 'de_mode' => 'view' ), get_permalink( $direct_queried_object->ID ) ),
+						'group' => '',
+						'meta' => array( 'title' => __( 'View mode', 'direct-edit' ) )
+					) );
+				
+					$wp_admin_bar->add_node( array(
+						'id' => 'mode-edit',
+						'title' => __( 'Edit mode', 'direct-edit' ),
+						'parent' => 'mode',
+						'href' => add_query_arg( array( 'de_mode' => 'edit' ), get_permalink( $direct_queried_object->ID ) ),
+						'group' => '',
+						'meta' => array( 'title' => __( 'Edit mode', 'direct-edit' ) )
+					) );
+				
+					$wp_admin_bar->add_node( array(
+						'id' => 'mode-edit-show-hidden',
+						'title' => __( 'Edit mode, show hidden items', 'direct-edit' ),
+						'parent' => 'mode',
+						'href' => add_query_arg( array( 'de_mode' => 'edit-show-hidden' ), get_permalink( $direct_queried_object->ID ) ),
+						'group' => '',
+						'meta' => array( 'title' => __( 'Edit mode, show hidden items', 'direct-edit' ) )
 					) );
 				}
 			}
 			
 			if ( ! is_admin() ) {
 				$wp_admin_bar->add_node( array(
-						'id' => 'save-page',
-						'title' => __( 'Save page', 'direct-edit' ),
-						'parent' => '',
-						'href' => '#',
-						'group' => '',
-						'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
-					)
-				);
+					'id' => 'save-page',
+					'title' => __( 'Save page', 'direct-edit' ),
+					'parent' => '',
+					'href' => '#',
+					'group' => '',
+					'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
+				) );
 			}
 		}
 		
@@ -404,12 +428,40 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					}
 				}
 				
-				$show = $_SESSION[ 'de_show_all' ];
-				$wp_admin_bar->add_menu( array(
+				$wp_admin_bar->add_node( array(
+					'id' => 'mode',
+					'title' => __( 'Mode', 'direct-edit' ),
 					'parent' => '',
-					'id' => 'show-all',
-					'title' => sprintf( '<input name="de_show_all" type="checkbox" value="1" %s /> %s', $show ? 'checked="checked"' : '', __( 'Show all', 'direct-edit' ) ),
-					'href' => add_query_arg( 'de_show_all', $show ? '0' : '1', $_SERVER['REQUEST_URI'] )
+					'href' => '#',
+					'group' => '',
+					'meta' => array( 'title' => __( 'Mode', 'direct-edit' ) )
+				) );
+				
+				$wp_admin_bar->add_node( array(
+					'id' => 'mode-view',
+					'title' => __( 'View mode', 'direct-edit' ),
+					'parent' => 'mode',
+					'href' => add_query_arg( array( 'de_mode' => 'view' ), get_permalink( $direct_queried_object->ID ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'View mode', 'direct-edit' ) )
+				) );
+				
+				$wp_admin_bar->add_node( array(
+					'id' => 'mode-edit',
+					'title' => __( 'Edit mode', 'direct-edit' ),
+					'parent' => 'mode',
+					'href' => add_query_arg( array( 'de_mode' => 'edit' ), get_permalink( $direct_queried_object->ID ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'Edit mode', 'direct-edit' ) )
+				) );
+				
+				$wp_admin_bar->add_node( array(
+					'id' => 'mode-edit-show-hidden',
+					'title' => __( 'Edit mode, show hidden items', 'direct-edit' ),
+					'parent' => 'mode',
+					'href' => add_query_arg( array( 'de_mode' => 'edit-show-hidden' ), get_permalink( $direct_queried_object->ID ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'Edit mode, show hidden items', 'direct-edit' ) )
 				) );
 			}
 			
@@ -420,8 +472,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'href' => '#',
 					'group' => '',
 					'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
-				)
-			);
+				) );
 		}
 
 		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
@@ -584,7 +635,7 @@ function de_pro_extensions_include() {
 }
 
 function de_pro_filter_posts( $query ) {
-	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && ! empty( $_SESSION[ 'de_show_all' ] ) && ! is_admin() ) {
+	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) && ! empty( $_SESSION[ 'de_mode' ] ) && $_SESSION[ 'de_mode' ] == 'edit-show-hidden' && ! is_admin() ) {
 		$query->query_vars[ 'post_status' ] = 'any';
 	}
 }
@@ -749,8 +800,8 @@ function de_pro_perform_actions() {
 	*/
 	
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) ) {
-		if( isset( $_GET[ 'de_show_all' ] ) ) {
-			$_SESSION[ 'de_show_all' ] = ( int ) $_GET[ 'de_show_all' ];
+		if( isset( $_GET[ 'de_mode' ] ) ) {
+			$_SESSION[ 'de_mode' ] = sanitize_text_field( $_GET[ 'de_mode' ] );
 			wp_redirect( home_url( $wp->request ) );
 			die();
 		}
@@ -1121,7 +1172,7 @@ function de_pro_nav_menu_filter( $items, $args ) {
 	global $post_type;
 
 	// Remove drafts if needed
-	if ( ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) || empty( $_SESSION[ 'de_show_all' ] ) ) {
+	if ( ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) || empty( $_SESSION[ 'de_mode' ] ) || $_SESSION[ 'de_mode' ] != 'edit-show-hidden' ) {
 		foreach ( $items as $key => $item ) {
 			if ( $item->type == 'post_type' ) {
 				$p = get_post( $item->object_id );

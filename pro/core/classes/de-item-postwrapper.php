@@ -40,7 +40,7 @@ class De_Item_Postwrapper extends De_Item {
 				$this->set_setting( 'attr', $attr );
 			}
 			// Add 'direct-show-all' class if 'Show all' option is checked
-			if ( ! empty( $_SESSION[ 'de_show_all' ] ) ) {
+			if ( ! empty( $_SESSION[ 'de_mode' ] ) && $_SESSION[ 'de_mode' ] == 'edit-show-hidden' ) {
 				$attr = $this->get_setting( 'attr' );
 				$attr[ 'class' ] = ( isset( $attr[ 'class' ] ) ? $attr[ 'class' ] . ' direct-show-all' : 'direct-show-all' );
 				$this->set_setting( 'attr', $attr );
@@ -48,7 +48,7 @@ class De_Item_Postwrapper extends De_Item {
 
 			// Possibility to order posts manually
 			global $wp_query;
-			if ( $this->get_setting( 'postId' ) && in_the_loop() && $wp_query->get( 'orderby' ) == 'directedit' && empty( $_SESSION[ 'de_show_all' ] ) && $this->get_setting( 'showOrder' ) ) {
+			if ( $this->get_setting( 'postId' ) && in_the_loop() && $wp_query->get( 'orderby' ) == 'directedit' && ( empty( $_SESSION[ 'de_mode' ] ) || $_SESSION[ 'de_mode' ] != 'edit-show-hidden' ) && $this->get_setting( 'showOrder' ) ) {
 				$de_options = $wp_query->get( 'directedit' );
 				
 				$de_options[ 'order' ][ 'count' ] ++;
@@ -82,7 +82,7 @@ class De_Item_Postwrapper extends De_Item {
 			$attr[ 'data-local-options' ] = $this->build_local_options();
 			if ( $this->store == 'post' ) {
 				global $wp_query;
-				if ( $this->get_setting( 'postId' ) && in_the_loop() && $wp_query->get( 'orderby' ) == 'directedit' && empty( $_SESSION[ 'de_show_all' ] ) && $this->get_setting( 'showOrder' ) ) {
+				if ( $this->get_setting( 'postId' ) && in_the_loop() && $wp_query->get( 'orderby' ) == 'directedit' && ( empty( $_SESSION[ 'de_mode' ] ) || $_SESSION[ 'de_mode' ] != 'edit-show-hidden' ) && $this->get_setting( 'showOrder' ) ) {
 					$attr[ 'data-count' ] = get_post_meta( $this->get_setting( 'postId' ), $this->get_setting( 'orderIndex' ), true );
 				}
 			}

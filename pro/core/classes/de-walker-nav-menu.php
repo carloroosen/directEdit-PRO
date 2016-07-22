@@ -7,8 +7,8 @@ class De_Walker_Nav_Menu extends Walker_Nav_Menu {
 		if ( empty( $item->url ) || empty( $item->title ) )
 			return;
 		
-		// Hide hidden page menuitem in view mode or if $_SESSION[ 'de_show_all' ] is turned off
-		if ( $item->type == 'post_type' && ! empty( $item->object_id ) && de_is_hidden( $item->object_id ) && ( ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) || empty( $_SESSION[ 'de_show_all' ] ) ) )
+		// Hide hidden page menuitem in view mode or if $_SESSION[ 'de_mode' ] != 'edit-show-hidden'
+		if ( $item->type == 'post_type' && ! empty( $item->object_id ) && de_is_hidden( $item->object_id ) && ( ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) || empty( $_SESSION[ 'de_mode' ] ) || $_SESSION[ 'de_mode' ] != 'edit-show-hidden' ) )
 			return;
 		
 		$indent = ( $depth ) ? str_repeat( "\t", $depth ) : '';
@@ -22,7 +22,7 @@ class De_Walker_Nav_Menu extends Walker_Nav_Menu {
 			$classes[] = 'direct-hidden';
 		}
 		// Add 'direct-show-all' class if 'Show all' option is checked
-		if ( ! empty( $_SESSION[ 'de_show_all' ] ) ) {
+		if ( ! empty( $_SESSION[ 'de_mode' ] ) && $_SESSION[ 'de_mode' ] == 'edit-show-hidden' ) {
 			$classes[] = 'direct-show-all';
 		}
 
@@ -64,7 +64,7 @@ class De_Walker_Nav_Menu extends Walker_Nav_Menu {
 		if ( empty( $item->url ) || empty( $item->title ) )
 			return;
 		
-		if ( $item->type == 'post_type' && ! empty( $item->object_id ) && de_is_hidden( $item->object_id ) && ( ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) || empty( $_SESSION[ 'de_show_all' ] ) ) )
+		if ( $item->type == 'post_type' && ! empty( $item->object_id ) && de_is_hidden( $item->object_id ) && ( ! ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) || empty( $_SESSION[ 'de_mode' ] ) || $_SESSION[ 'de_mode' ] != 'edit-show-hidden' ) )
 			return;
 		
 		$output .= "</li>\n";
