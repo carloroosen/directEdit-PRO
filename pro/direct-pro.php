@@ -328,6 +328,15 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'group' => '',
 					'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
 				) );
+
+				$wp_admin_bar->add_node( array(
+					'id' => 'de-help',
+					'title' => __( 'Help', 'direct-edit' ),
+					'parent' => '',
+					'href' => get_permalink( get_option( 'de_help' ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'Help', 'direct-edit' ) )
+				) );
 			}
 		}
 		
@@ -472,6 +481,15 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'href' => '#',
 					'group' => '',
 					'meta' => array( 'title' => __( 'Save page', 'direct-edit' ) )
+				) );
+
+				$wp_admin_bar->add_node( array(
+					'id' => 'de-help',
+					'title' => __( 'Help', 'direct-edit' ),
+					'parent' => '',
+					'href' => get_permalink( get_option( 'de_help' ) ),
+					'group' => '',
+					'meta' => array( 'title' => __( 'Help', 'direct-edit' ) )
 				) );
 		}
 
