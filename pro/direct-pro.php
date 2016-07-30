@@ -316,6 +316,15 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'group' => '',
 						'meta' => array( 'title' => __( 'Edit mode, show hidden items', 'direct-edit' ) )
 					) );
+					
+					$wp_admin_bar->add_node( array(
+						'id' => 'lost-pages',
+						'title' => __( 'Lost pages', 'direct-edit' ),
+						'parent' => '',
+						'href' => '#',
+						'group' => '',
+						'meta' => array( 'title' => __( 'Lost pages', 'direct-edit' ) )
+					) );
 				}
 			}
 			
@@ -471,6 +480,15 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'href' => add_query_arg( array( 'de_mode' => 'edit-show-hidden' ), get_permalink( $direct_queried_object->ID ) ),
 					'group' => '',
 					'meta' => array( 'title' => __( 'Edit mode, show hidden items', 'direct-edit' ) )
+				) );
+				
+				$wp_admin_bar->add_node( array(
+					'id' => 'mode-edit-lost-pages',
+					'title' => __( 'Lost pages', 'direct-edit' ),
+					'parent' => '',
+					'href' => '#',
+					'group' => '',
+					'meta' => array( 'title' => __( 'Lost pages', 'direct-edit' ) )
 				) );
 			}
 			
@@ -1149,6 +1167,17 @@ jQuery(document).ready(function() {
 </script>
 			<?php
 		}
+	}
+	
+	// Lost pages overview
+	if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
+		?>
+<script>
+jQuery(document).ready(function() {
+	jQuery('li#wp-admin-bar-lost-pages a').directLostPagesButton();
+});
+</script>
+		<?php
 	}
 }
 
