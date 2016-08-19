@@ -799,12 +799,14 @@ function de_webform_js() {
 						success: function (result) {
 							if (result['errors']) {
 								jQuery('#de_webform_errors').hide();
+								jQuery('#de_webform_messages').hide();
 								jQuery('#de_webform_errors').html(result['errors']);
 								jQuery('#de_webform_errors').fadeIn('slow');
 							} else if (result['redirect']) {
 								window.location = result['redirect'];
 							} else if (result['messages']) {
 								\$form.get(0).reset();
+								jQuery('#de_webform_errors').hide();
 								jQuery('#de_webform_messages').hide();
 								jQuery('#de_webform_messages_text').html(result['messages']);
 								jQuery('#de_webform_messages').fadeIn('slow');
