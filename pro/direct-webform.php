@@ -779,7 +779,7 @@ function de_webform_js() {
 				var \$form = jQuery('form" . ( $webform_id ? '#' . $webform_id : '' ) . "');
 
 				jQuery('<div>').insertBefore(\$form).attr('id', 'de_webform_errors').hide();
-				jQuery('<div>').insertBefore(\$form).attr('id', 'de_webform_messages').append('<div id=\"de_webform_messages_text\">').append('<a href=\"#\" id=\"de_webform_show_form\">Show form</a>').hide();
+				jQuery('<div>').insertBefore(\$form).attr('id', 'de_webform_messages').append('<div id=\"de_webform_messages_text\">').append('<a href=\"#\" id=\"de_webform_show_form\">" . __( 'Show form', 'direct-edit' ) . "</a>').hide();
 				jQuery('#de_webform_show_form').click(function(e) {
 					e.preventDefault();
 					
@@ -804,6 +804,7 @@ function de_webform_js() {
 							} else if (result['redirect']) {
 								window.location = result['redirect'];
 							} else if (result['messages']) {
+								\$form.get(0).reset();
 								jQuery('#de_webform_messages').hide();
 								jQuery('#de_webform_messages_text').html(result['messages']);
 								jQuery('#de_webform_messages').fadeIn('slow');
