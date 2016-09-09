@@ -47,17 +47,24 @@ function direct_get_posts( $args = array() ) {
 	$wp_query->parse_query( $args );
 
 	if ( $args[ 'orderby' ] == 'directedit' ) {
+		/*
+		It doesn't seem useful. Better let's set posts_per_page = -1.
 		if ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) {
 			add_filter( 'post_limits', 'de_post_limits', 10, 2 );
 		}
+		*/
 
-		$index = 'direct_order';
-		if( count( $wp_query->tax_query->queried_terms ) == 1 ) {		
-			foreach( $wp_query->tax_query->queried_terms as $key => $value ) {
-				if ( count( $value[ 'terms' ] ) == 1 ) {
-					$t = get_term_by( $value[ 'field' ], $value[ 'terms' ][ 0 ], $key );
-					if ( $t ) {
-						$index = $index . '_' . $t->taxonomy . '_' . $t->slug;
+		if ( ! empty( $args[ 'directedit' ][ 'order' ][ 'index' ] ) ) {
+			$index = $args[ 'directedit' ][ 'order' ][ 'index' ];
+		} else {
+			$index = 'direct_order';
+			if( count( $wp_query->tax_query->queried_terms ) == 1 ) {		
+				foreach( $wp_query->tax_query->queried_terms as $key => $value ) {
+					if ( count( $value[ 'terms' ] ) == 1 ) {
+						$t = get_term_by( $value[ 'field' ], $value[ 'terms' ][ 0 ], $key );
+						if ( $t ) {
+							$index = $index . '_' . $t->taxonomy . '_' . $t->slug;
+						}
 					}
 				}
 			}
@@ -72,14 +79,15 @@ function direct_get_posts( $args = array() ) {
 	remove_filter( 'post_limits', 'de_post_limits', 10 );
 	remove_filter( 'posts_join', 'de_posts_join', 10 );
 	remove_filter( 'posts_orderby', 'de_posts_orderby', 10 );
-	//echo '<pre>';
-	//print_r( $wp_query );
+	//echo $wp_query->request;
 	return $wp_query;
 }
 
+/*
 function de_post_limits( $limit, $query ) {
 	return '';
 }
+*/
 
 function de_posts_join( $join, $query ) {
 	global $wpdb;
