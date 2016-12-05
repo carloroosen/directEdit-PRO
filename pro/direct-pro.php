@@ -55,8 +55,8 @@ if ( get_option( 'de_use_seo' ) == '' ) {
 	add_filter( 'wp_title', 'de_pro_seo_title', 100 );
 	add_action( 'wp_head', 'de_pro_seo' );
 } elseif ( get_option( 'de_use_seo' ) == 'wordpress-seo' ) {
-	add_filter( 'wpseo_title', 'de_pro_wpseo_title' );	
-	add_filter( 'wpseo_metadesc', 'de_pro_wpseo_metadesc' );	
+	add_filter( 'wpseo_title', 'de_pro_wpseo_title' );
+	add_filter( 'wpseo_metadesc', 'de_pro_wpseo_metadesc' );
 }
 
 function de_pro_tweak_menu( $wp_admin_bar ) {
@@ -83,7 +83,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 		$wp_admin_bar->remove_menu( 'comments' );
 		$wp_admin_bar->remove_menu( 'new-content' );
 		$wp_admin_bar->remove_menu( 'edit' );
-		
+
 		$wp_admin_bar->add_node( array(
 				'id' => 'menu-back',
 				'title' => __( 'Back to website', 'direct-edit' ),
@@ -166,11 +166,13 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 				}
 				$wp_admin_bar->remove_menu( 'dashboard' );
 				$wp_admin_bar->remove_menu( 'menus' );
-				$wp_admin_bar->remove_menu( 'my-account' );
+				//$wp_admin_bar->remove_menu( 'my-account' );
+				$wp_admin_bar->remove_menu( 'user-info' );
+				$wp_admin_bar->remove_menu( 'edit-profile' );
 				$wp_admin_bar->remove_menu( 'search' );
 				$wp_admin_bar->remove_menu( 'wp-logo' );
 			}
-			
+
 			$wp_admin_bar->remove_menu( 'customize' );
 			$wp_admin_bar->remove_menu( 'updates' );
 			$wp_admin_bar->remove_menu( 'wp-logo' );
@@ -187,11 +189,11 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 			$wp_admin_bar->remove_menu( 'search' );
 			$wp_admin_bar->remove_menu( 'wp-logo' );
 		}
-		
+
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
 			$wp_admin_bar->remove_menu( 'edit' );
-			
+
 			$all_toolbar_nodes = $wp_admin_bar->get_nodes();
 			foreach ( $all_toolbar_nodes as $node ) {
 				if ( $node->parent == 'new-content' ) {
@@ -209,7 +211,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'meta' => array( 'title' => 'Add New' )
 					)
 				);
-				
+
 				foreach( get_post_types( array( 'show_ui' => true ), 'objects' ) as $postType ) {
 					if ( ! in_array( $postType->name, array( 'post', 'page' ) ) && ( in_array( $postType->name, array( 'de_list_item', 'de_webform' ) ) || strpos( $postType->name, 'de_' ) !== 0 ) )
 						continue;
@@ -239,7 +241,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 								'meta' => array( 'title' => __( 'Page options', 'direct-edit' ) )
 							)
 						);
-						
+
 						if ( de_is_hideable( $direct_queried_object->ID ) ) {
 							if ( de_is_hidden( $direct_queried_object->ID ) ) {
 								$wp_admin_bar->add_node( array(
@@ -263,7 +265,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 								);
 							}
 						}
-						
+
 						// We can't delete webforms in frontend
 						if ( de_is_deleteable( $direct_queried_object->ID ) && ! in_array( $direct_queried_object->post_type, array( 'de_webform' ) ) && current_user_can( 'delete_post', $direct_queried_object->ID ) ) {
 							$wp_admin_bar->add_node( array(
@@ -280,7 +282,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							);
 						}
 					}
-										
+
 					$wp_admin_bar->add_node( array(
 						'id' => 'mode',
 						'title' => __( 'Mode', 'direct-edit' ),
@@ -289,7 +291,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'group' => '',
 						'meta' => array( 'title' => __( 'Mode', 'direct-edit' ) )
 					) );
-					
+
 					$wp_admin_bar->add_node( array(
 						'id' => 'mode-view',
 						'title' => __( 'View mode', 'direct-edit' ),
@@ -298,7 +300,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'group' => '',
 						'meta' => array( 'title' => __( 'View mode', 'direct-edit' ) )
 					) );
-				
+
 					$wp_admin_bar->add_node( array(
 						'id' => 'mode-edit',
 						'title' => __( 'Edit mode', 'direct-edit' ),
@@ -307,7 +309,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'group' => '',
 						'meta' => array( 'title' => __( 'Edit mode', 'direct-edit' ) )
 					) );
-				
+
 					$wp_admin_bar->add_node( array(
 						'id' => 'mode-edit-show-hidden',
 						'title' => __( 'Edit mode, show hidden items', 'direct-edit' ),
@@ -316,7 +318,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						'group' => '',
 						'meta' => array( 'title' => __( 'Edit mode, show hidden items', 'direct-edit' ) )
 					) );
-					
+
 					$wp_admin_bar->add_node( array(
 						'id' => 'lost-pages',
 						'title' => __( 'Lost pages', 'direct-edit' ),
@@ -327,7 +329,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					) );
 				}
 			}
-			
+
 			if ( ! is_admin() ) {
 				$wp_admin_bar->add_node( array(
 					'id' => 'save-page',
@@ -348,7 +350,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 				) );
 			}
 		}
-		
+
 		/* Menu editor is hidden. Probably it will be removed at all in future versions. */
 		/*
 		if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ( empty( $uri[ 0 ] ) || ( $uri[ 0 ] != 'edit-menu' ) ) ) {
@@ -367,7 +369,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 		// Menu changes are needed to edit only
 		if ( current_user_can('edit_posts') || current_user_can( 'edit_users' ) || current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) {
 			$wp_admin_bar->remove_menu( 'edit' );
-			
+
 			$all_toolbar_nodes = $wp_admin_bar->get_nodes();
 			foreach ( $all_toolbar_nodes as $node ) {
 				if ( $node->parent == 'new-content' ) {
@@ -404,7 +406,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							'meta' => array( 'title' => __( 'Page options', 'direct-edit' ) )
 						)
 					);
-					
+
 					if ( de_is_hideable( $direct_queried_object->ID ) ) {
 						if ( de_is_hidden( $direct_queried_object->ID ) ) {
 							$wp_admin_bar->add_node( array(
@@ -428,7 +430,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 							);
 						}
 					}
-					
+
 					// We can't delete webforms in frontend
 					if ( de_is_deleteable( $direct_queried_object->ID ) && ! in_array( $direct_queried_object->post_type, array( 'de_webform' ) ) && current_user_can( 'delete_post', $direct_queried_object->ID ) ) {
 						$wp_admin_bar->add_node( array(
@@ -445,7 +447,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 						);
 					}
 				}
-				
+
 				$wp_admin_bar->add_node( array(
 					'id' => 'mode',
 					'title' => __( 'Mode', 'direct-edit' ),
@@ -454,7 +456,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'group' => '',
 					'meta' => array( 'title' => __( 'Mode', 'direct-edit' ) )
 				) );
-				
+
 				$wp_admin_bar->add_node( array(
 					'id' => 'mode-view',
 					'title' => __( 'View mode', 'direct-edit' ),
@@ -463,7 +465,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'group' => '',
 					'meta' => array( 'title' => __( 'View mode', 'direct-edit' ) )
 				) );
-				
+
 				$wp_admin_bar->add_node( array(
 					'id' => 'mode-edit',
 					'title' => __( 'Edit mode', 'direct-edit' ),
@@ -472,7 +474,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'group' => '',
 					'meta' => array( 'title' => __( 'Edit mode', 'direct-edit' ) )
 				) );
-				
+
 				$wp_admin_bar->add_node( array(
 					'id' => 'mode-edit-show-hidden',
 					'title' => __( 'Edit mode, show hidden items', 'direct-edit' ),
@@ -481,7 +483,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'group' => '',
 					'meta' => array( 'title' => __( 'Edit mode, show hidden items', 'direct-edit' ) )
 				) );
-				
+
 				$wp_admin_bar->add_node( array(
 					'id' => 'mode-edit-lost-pages',
 					'title' => __( 'Lost pages', 'direct-edit' ),
@@ -491,7 +493,7 @@ function de_pro_tweak_menu( $wp_admin_bar ) {
 					'meta' => array( 'title' => __( 'Lost pages', 'direct-edit' ) )
 				) );
 			}
-			
+
 			$wp_admin_bar->add_node( array(
 					'id' => 'save-page',
 					'title' => __( 'Save page', 'direct-edit' ),
@@ -543,7 +545,7 @@ function de_pro_copy_de_files() {
 		$options = array();
 
 	$target = get_stylesheet_directory();
-	
+
 	// Create auxiliary dirs and copy login form template
 	if ( ! file_exists( $target . '/de_webform' ) ) {
 		umask( 0 );
@@ -554,7 +556,7 @@ function de_pro_copy_de_files() {
 			chmod( $target . '/de_webform/log-in.php', 0777 );
 		}
 	}
-	
+
 	// Create custom page templates
 	foreach ( $options as $option ) {
 		if ( ! file_exists( $target . '/archive-de_' . sanitize_title( $option->name ) . '.php' ) ) {
@@ -621,7 +623,7 @@ function de_pro_capabilities() {
 	if ( $admin && empty( $admin->capabilities[ 'edit_de_frontend' ] ) ) {
 		$admin->add_cap( 'edit_de_frontend', true );
 	}
-	
+
 	$editor = get_role( 'editor' );
 	if ( $editor && empty( $editor->capabilities[ 'edit_de_frontend' ] ) ) {
 		$editor->add_cap( 'edit_de_frontend', true );
@@ -655,7 +657,7 @@ function de_pro_login_redirect() {
 
 function de_pro_extensions_include() {
 	remove_action( 'init', 'de_extensions_default', 10 );
-	
+
 	// Include multilanguage extensions
 	if ( class_exists( 'Polylang' ) ) {
 		de_pro_include( DIRECT_PATH . 'pro/extensions/multilanguage/de_language-wrapper-polylang.php', DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php' );
@@ -663,7 +665,7 @@ function de_pro_extensions_include() {
 	} else {
 		require_once DIRECT_PATH . 'extensions/multilanguage/de_language-wrapper-default.php';
 	}
-	
+
 	// ACF
 	if( class_exists('acf') ) {
 		de_pro_include( DIRECT_PATH . 'pro/extensions/acf/wrapper.php' );
@@ -688,7 +690,7 @@ function de_pro_custom_template( $template ) {
 		if ( de_is_front_page( $direct_queried_object->ID ) ) {
 			if ( is_dir( get_stylesheet_directory() . '/custom/front-page' ) && file_exists( get_stylesheet_directory() . '/custom/front-page/front-page.php' ) ) {
 				$template = get_stylesheet_directory() . '/custom/front-page/front-page.php';
-				
+
 				if ( file_exists( dirname( $template ) . '/functions.php' ) ) {
 					include dirname( $template ) . '/functions.php';
 				}
@@ -696,7 +698,7 @@ function de_pro_custom_template( $template ) {
 		} elseif ( $direct_queried_object->post_type == 'de_webform' ) {
 			if ( is_dir( get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name ) && file_exists( get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name . '/single-de_webform.php' ) ) {
 				$template = get_stylesheet_directory() . '/de_webform/custom/' . $direct_queried_object->post_name . '/single-de_webform.php';
-				
+
 				if ( file_exists( dirname( $template ) . '/functions.php' ) ) {
 					include dirname( $template ) . '/functions.php';
 				}
@@ -719,7 +721,7 @@ function de_pro_custom_template( $template ) {
 			}
 		}
 	}
-	
+
 	// Include custom functions.php
 	foreach( $options as $option ) {
 		if ( get_stylesheet_directory() . '/custom/' . sanitize_title( $option->name ) == dirname( $template ) && file_exists( dirname( $template ) . '/functions.php' ) ) {
@@ -727,7 +729,7 @@ function de_pro_custom_template( $template ) {
 			break;
 		}
 	}
-	
+
 	return $template;
 }
 
@@ -740,7 +742,7 @@ function de_pro_edit_menu() {
 	global $wp;
 	global $de_current_template;
 	global $direct_queried_object;
-	
+
 	$uri =  explode( '/', $wp->request );
 	if ( ! is_admin() && ( current_user_can( 'edit_theme_options' ) || current_user_can( 'edit_de_frontend' ) ) && get_option( 'de_menu_editor_enabled' ) && ! empty( $uri[ 0 ] ) && ( $uri[ 0 ] == 'edit-menu' ) ) {
 		// "Edit menu" functionality
@@ -824,7 +826,7 @@ function de_pro_perform_actions() {
 	global $post;
 	global $wp;
 	global $direct_queried_object;
-	
+
 	$uri =  explode( '/', $wp->request );
 	/* Menu editor is hidden. Probably it will be removed at all in future versions. */
 	/*
@@ -834,7 +836,7 @@ function de_pro_perform_actions() {
 		die();
 	}
 	*/
-	
+
 	if ( ( current_user_can( 'edit_posts' ) || current_user_can( 'edit_de_frontend' ) ) ) {
 		if( isset( $_GET[ 'de_mode' ] ) ) {
 			$_SESSION[ 'de_mode' ] = sanitize_text_field( $_GET[ 'de_mode' ] );
@@ -913,7 +915,7 @@ function de_pro_perform_actions() {
 				} elseif ( get_post_meta( $direct_queried_object->ID, 'de_post_parent', true ) && get_post( get_post_meta( $direct_queried_object->ID, 'de_post_parent', true ) ) ) {
 					$redirect = get_permalink( get_post_meta( $direct_queried_object->ID, 'de_post_parent', true ) );
 				}
-				
+
 				if ( empty( $redirect ) ) {
 					if ( De_Language_Wrapper::has_multilanguage() ) {
 						$redirect = home_url( De_Language_Wrapper::get_current_language() );
@@ -921,7 +923,7 @@ function de_pro_perform_actions() {
 						$redirect = home_url();
 					}
 				}
-				
+
 				// Delete posts in all languages if needed
 				if ( De_Language_Wrapper::has_multilanguage() && De_Language_Wrapper::get_language_posts( $direct_queried_object->ID ) ) {
 					foreach( De_Language_Wrapper::get_language_posts( $direct_queried_object->ID ) as $lang_post ) {
@@ -930,7 +932,7 @@ function de_pro_perform_actions() {
 				} else {
 					wp_delete_post( $direct_queried_object->ID, true );
 				}
-				
+
 				wp_redirect( $redirect );
 				die();
 			}
@@ -961,7 +963,7 @@ function de_pro_handle_url() {
 			if ( $p && $p->ID && ( empty( $wp->query_vars['page_id'] ) || $wp->query_vars['page_id'] == $p->ID ) ) {
 				status_header( 200 );
 				$wp_query->is_404 = false;
-				
+
 				$direct_queried_object = $p;
 
 				// If it is a dE archive page or dE archive language page, then set post_type selection
@@ -970,25 +972,25 @@ function de_pro_handle_url() {
 						if ( De_Language_Wrapper::has_multilanguage() ) {
 							De_Language_Wrapper::set_current_language( De_Language_Wrapper::get_post_language( $direct_queried_object->ID ) );
 						}
-						
+
 						$request[ 'post_type' ] = $pt->name;
 						$request[ 'posts_per_page' ] = -1;
 						$request[ 'orderby' ] = 'menu_order';
 						$request[ 'order' ] = 'ASC';
 						$request = apply_filters( 'de_get_de_posts', $request );
 						query_posts( $request );
-						
+
 						$post_type = $pt->name;
 						$posts = get_posts( $request );
 						if ( is_array( $posts ) && count( $posts ) ) {
 							$post = $posts[ 0 ];
 							setup_postdata( $post );
 						}
-						
+
 						return;
 					}
 				}
-				
+
 				if( $direct_queried_object->post_type == 'page' ) {
 					$request[ 'pagename' ] = $direct_queried_object->post_name;
 				} else {
@@ -997,11 +999,11 @@ function de_pro_handle_url() {
 					$request[ 'name' ] = $direct_queried_object->post_name;
 				}
 				query_posts( $request );
-				
+
 				$post_type = $direct_queried_object->post_type;
 				$post = $direct_queried_object;
 				setup_postdata( $post );
-				
+
 				// Restore custom query vars
 				$public_query_vars = array();
 				$public_query_vars = apply_filters( 'query_vars', $public_query_vars );
@@ -1012,7 +1014,7 @@ function de_pro_handle_url() {
 					elseif ( isset( $_GET[ $wpvar ] ) )
 						$wp_query->query_vars[ $wpvar ] = $_GET[ $wpvar ];
 				}
-				
+
 				$wp_the_query = $wp_query;
 			}
 		} else {
@@ -1027,14 +1029,14 @@ function de_pro_handle_url() {
 						$request[ 'orderby' ] = 'menu_order';
 						$request[ 'order' ] = 'ASC';
 						query_posts( $request );
-						
+
 						$post_type = $pt->name;
 						$posts = get_posts( $request );
 						if ( is_array( $posts ) && count( $posts ) ) {
 							$post = $posts[ 0 ];
 							setup_postdata( $post );
 						}
-						
+
 						return;
 					}
 				}
@@ -1061,7 +1063,7 @@ jQuery(document).ready(function() {
 		<?php
 	}
 	*/
-	
+
 	if ( is_object( $direct_queried_object ) && isset( $direct_queried_object->ID ) ) {
 		if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
 				?>
@@ -1168,7 +1170,7 @@ jQuery(document).ready(function() {
 			<?php
 		}
 	}
-	
+
 	// Lost pages overview
 	if ( ( current_user_can('edit_posts') || current_user_can( 'edit_de_frontend' ) ) ) {
 		?>
@@ -1183,7 +1185,7 @@ jQuery(document).ready(function() {
 
 function de_pro_remove_edit_post_link( $link ) {
 	global $current_user;
-	
+
 	if ( in_array( 'editor', $current_user->roles ) && get_option( 'de_disable_backend_editor' ) ) {
 		return '';
 	} else {
@@ -1239,7 +1241,7 @@ function de_pro_nav_menu_filter( $items, $args ) {
 		$listPage = get_page( $id );
 	else
 		$listPage = null;
-	
+
 	$current = null;
 	$itemsById = array();
 
@@ -1255,54 +1257,54 @@ function de_pro_nav_menu_filter( $items, $args ) {
 				}
 			}
 		}
-		
+
 		$itemsById[ $item->ID ] = $key;
 	}
 
 	// Set current menuitem
 	if ( empty( $current ) ) {
-		foreach ( $items as $key => $item ) { 
+		foreach ( $items as $key => $item ) {
 			// Current page
 			if( $item->type == 'post_type' && $direct_queried_object && ( $item->object_id == $direct_queried_object->ID || de_is_language_post( $item->object_id, $direct_queried_object->ID ) ) && ! $item->current ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
-				
+
 				$current = $items[ $key ];
-				
+
 				break;
 			}
-			
+
 			// Blog archive page
 			if ( $item->type == 'post_type' && $post_type == 'post' && de_is_home( $item->object_id ) ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
-				
+
 				$current = $items[ $key ];
-				
+
 				break;
 			}
-			
+
 			// dE post type archive page
 			if( $item->type == 'post_type' && $listPage && ( $item->object_id == $listPage->ID || de_is_language_post( $item->object_id, $listPage->ID ) ) ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
-				
+
 				$current = $items[ $key ];
-				
+
 				break;
 			}
-			
+
 			// Taxonomy page
 			if ( $item->type == 'taxonomy' && ( is_single() && $direct_queried_object && has_term( $item->object_id, $item->object, $direct_queried_object->ID ) ) ) {
 				$items[ $key ]->current = 1;
 				$items[ $key ]->classes[] = 'current-menu-item';
-				
+
 				$current = $items[ $key ];
-				
+
 				break;
 			}
 		}
-		
+
 		if ( is_object( $current ) && ! empty( $current->menu_item_parent ) ) {
 			$parent = $items[ $itemsById[ $current->menu_item_parent ] ];
 			$parent->current_item_ancestor = 1;
@@ -1320,7 +1322,7 @@ function de_pro_nav_menu_filter( $items, $args ) {
 	if ( empty( $args->startLevel ) )
 		return $items;
 	$startLevel = $args->startLevel;
-	
+
 	// Look for the proper ancestor
 	$i = 1;
 	$parentId = 0;
@@ -1330,10 +1332,10 @@ function de_pro_nav_menu_filter( $items, $args ) {
 				$cursor = $item->ID;
 				break;
 			}
-			
+
 			if ( $item->current_item )
 				return array();
-			
+
 			$parentId = $item->ID;
 			$i ++;
 		}
@@ -1373,7 +1375,7 @@ function de_pro_seo() {
 
 function de_pro_wpseo_title( $title ) {
 	global $direct_queried_object;
-	
+
 	if ( ! empty( $direct_queried_object ) && de_is_de_archive( $direct_queried_object->ID ) ) {
 		$title = get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_title', true );
 		return wpseo_replace_vars( ( $title ? $title : '%%title%%' ) . ' %%sep%% %%sitename%%', $direct_queried_object );
@@ -1384,7 +1386,7 @@ function de_pro_wpseo_title( $title ) {
 
 function de_pro_wpseo_metadesc( $desc ) {
 	global $direct_queried_object;
-	
+
 	if ( ! empty( $direct_queried_object ) && de_is_de_archive( $direct_queried_object->ID ) ) {
 		return get_post_meta( $direct_queried_object->ID, '_yoast_wpseo_metadesc', true );
 	} else {
