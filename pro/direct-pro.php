@@ -1202,7 +1202,11 @@ function de_pro_set_locale( $locale ) {
 }
 
 function de_pro_logout_home( $logouturl, $redir ) {
-	$redir = home_url();
+	if ( De_Language_Wrapper::has_multilanguage() ) {
+		$redir = home_url( De_Language_Wrapper::get_current_language() );
+	} else {
+		$redir = home_url();
+	}
 	return add_query_arg( 'redirect_to', urlencode( $redir ), $logouturl );
 }
 
