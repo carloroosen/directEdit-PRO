@@ -44,10 +44,10 @@ function de_webform_general_metabox( $post ) {
 	$postId = $post->ID;
 
 	$jsIdentifier = get_post_meta( $postId, 'de_js_identifier', true );
-	$ajaxForm = get_post_meta( $postId, 'de_ajax_form', true );	
+	$ajaxForm = get_post_meta( $postId, 'de_ajax_form', true );
 	$successPage = get_post_meta( $postId, 'de_success_page', true );
 	$successMessage = get_post_meta( $postId, 'de_success_message', true );
-	
+
 	echo '<fieldset>';
 	echo '<label for="de_js_identifier">' . __( 'Form identifier', 'direct-edit' ) . '</label>';
 	echo '<br />';
@@ -76,7 +76,7 @@ function de_webform_general_metabox( $post ) {
 function de_webform_email_admin_metabox( $post ) {
 	$postId = $post->ID;
 	$newPage = ( basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' );
-	
+
 	$useAdminEmail = get_post_meta( $postId, 'de_use_admin_email', true );
 	$adminFromUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_admin_from_use_global', true ) );
 	//$adminEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_admin_email_from', true ) );
@@ -90,7 +90,7 @@ function de_webform_email_admin_metabox( $post ) {
 	$adminEmailBodyHtml = get_post_meta( $postId, 'de_admin_email_body_html', true );
 	$adminEmailBody = get_post_meta( $postId, 'de_admin_email_body', true );
 	$adminAttachUploads = get_post_meta( $postId, 'de_admin_attach_uploads', true );
-	
+
 	echo '<input type="hidden" name="de_use_admin_email" value="0" />';
 	echo '<input type="checkbox" id="de_use_admin_email" name="de_use_admin_email" value="1"' . ( $useAdminEmail ? ' checked="checked"' : '' ) . ' />';
 	echo ' <label for="de_use_admin_email">' . __( 'Use admin email', 'direct-edit' ) . '</label>';
@@ -143,7 +143,7 @@ function de_webform_email_admin_metabox( $post ) {
 function de_webform_email_user_metabox( $post ) {
 	$postId = $post->ID;
 	$newPage = ( basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' );
-	
+
 	$useUserEmail = get_post_meta( $postId, 'de_use_user_email', true );
 	$userFromUseGlobal = ( $newPage ? 1 : get_post_meta( $postId, 'de_user_from_use_global', true ) );
 	//$userEmailFrom = ( $newPage ? get_option( 'admin_email' ) : get_post_meta( $postId, 'de_user_email_from', true ) );
@@ -156,7 +156,7 @@ function de_webform_email_user_metabox( $post ) {
 	$userEmailBodyHtml = get_post_meta( $postId, 'de_user_email_body_html', true );
 	$userEmailBody = get_post_meta( $postId, 'de_user_email_body', true );
 	$userAttachUploads = get_post_meta( $postId, 'de_user_attach_uploads', true );
-	
+
 	echo '<input type="hidden" name="de_use_user_email" value="0" />';
 	echo '<input type="checkbox" id="de_use_user_email" name="de_use_user_email" value="1"' . ( $useUserEmail ? ' checked="checked"' : '' ) . ' />';
 	echo ' <label for="de_use_user_email">' . __( 'Use user email', 'direct-edit' ) . '</label>';
@@ -316,7 +316,7 @@ function de_webform_setup( $post ) {
 	global $de_webform_replace;
 	global $de_webform_success_page;
 	global $wpdb;
-	
+
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
 		/*
 		 * Limit login attempts
@@ -325,7 +325,7 @@ function de_webform_setup( $post ) {
 			wp_redirect( home_url() );
 			die();
 		}
-		
+
 		/*
 		 * If wp-login form redirect switched off we do redirect to wp-login
 		 */
@@ -333,7 +333,7 @@ function de_webform_setup( $post ) {
 			wp_redirect( de_get_login_form_permalink() );
 			die();
 		}
-		
+
 		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
 			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
 				/*
@@ -358,13 +358,13 @@ function de_webform_setup( $post ) {
 						$userData = $wpdb->get_row( $wpdb->prepare( "SELECT ID, user_login, user_email FROM $wpdb->users WHERE user_activation_key = %s AND user_email = %s", $key, $email ) );
 						if( ! empty( $userData ) ) {
 							$user = get_userdata( $userData->ID );
-							
+
 							wp_set_current_user( $userData->ID, $userData->user_login );
 							wp_set_auth_cookie( $userData->ID );
 							do_action( 'wp_login', $userData->user_login );
 
 							$wpdb->update( $wpdb->users, array( 'user_activation_key' => '' ), array( 'user_login' => $userData->user_login ) );
-							
+
 							/*
 							 * New password form redirect
 							 */
@@ -400,7 +400,7 @@ function de_webform_validate( $post ) {
 	global $user_ID;
 	global $de_webform_errors;
 	global $de_webform_values;
-	
+
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
 		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
 			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
@@ -411,9 +411,9 @@ function de_webform_validate( $post ) {
 				}
 			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
 				$user_data = get_userdata( $user_ID );
-				
+
 				$de_webform_values[ 'password' ] = sanitize_text_field( $_POST[ 'password' ] );
-				
+
 				if( empty( $de_webform_values[ 'password' ] ) ) {
 					$de_webform_errors[ 'password' ] = __( 'You have no password specified.', 'direct-edit' );
 				}
@@ -451,7 +451,7 @@ function de_webform_action( $post ) {
 	global $de_webform_success_message;
 	global $de_webform_success_page;
 	global $de_webform_use_user_email;
-	
+
 	if ( $post->ID == get_option( 'de_login_form' ) || de_is_language_post( $post->ID, get_option( 'de_login_form' ) ) ) {
 		if ( ! empty( $_REQUEST[ 'action' ] ) ) {
 			if ( $_REQUEST[ 'action' ] == 'password-recovery' ) {
@@ -468,15 +468,19 @@ function de_webform_action( $post ) {
 				/*
 				 * Email values
 				 */
+				$de_webform_search[] = '{first_name}';
+                $de_webform_replace[] = get_user_meta( $userData->ID, 'first_name', true );
+                $de_webform_search[] = '{last_name}';
+                $de_webform_replace[] = get_user_meta( $userData->ID, 'last_name', true );
 				$de_webform_search[] = '{link}';
 				$de_webform_replace[] = add_query_arg( array( 'action' => 'password-recovery', 'key' => urlencode( $key ), 'email' => urlencode( $email ) ), de_get_login_form_permalink() );
-				
+
 				$de_webform_success_page = '';
 				$de_webform_success_message = __( 'An email with a login link has been sent to {email}.', 'direct-edit' );
 				$de_webform_use_user_email = 1;
 			} elseif( $_REQUEST[ 'action' ] == 'set-new-password' ) {
 				wp_set_password( $de_webform_values[ 'password' ], $user_ID );
-				
+
 				$de_webform_success_page = de_get_login_form_permalink();
 			}
 		} else {
@@ -485,14 +489,14 @@ function de_webform_action( $post ) {
 			$user = get_user_by( 'email', $email );
 			$username = $user->user_login;
 
-			$loginData[ 'user_login' ] = $username;  
-			$loginData[ 'user_password' ] = $password;  
-			$loginData[ 'remember' ] = false;  
+			$loginData[ 'user_login' ] = $username;
+			$loginData[ 'user_password' ] = $password;
+			$loginData[ 'remember' ] = false;
 
 			/*
 			 * Login attempt
 			 */
-			$userVerify = wp_signon( $loginData );   
+			$userVerify = wp_signon( $loginData );
 
 			if ( is_wp_error( $userVerify ) ) {
 				$de_webform_errors[] = $userVerify->get_error_message();
@@ -500,7 +504,7 @@ function de_webform_action( $post ) {
 					de_security_add_login_attempt();
 				}
 			}
-			
+
 			if ( current_user_can( 'edit_de_frontend' ) ) {
 				$de_webform_success_page = add_query_arg( 'v', time(), $de_webform_success_page );
 			}
@@ -515,12 +519,12 @@ function de_webform_save_template( $post_id, $post ) {
 
 		if ( basename( $_SERVER['PHP_SELF'] ) == 'post.php' || basename( $_SERVER['PHP_SELF'] ) == 'post-new.php' ) {
 			update_post_meta( $post->ID, 'de_webform_template', $_POST['de_webform_template'] );
-			
+
 			update_post_meta( $post->ID, 'de_js_identifier', $_POST['de_js_identifier'] );
 			update_post_meta( $post->ID, 'de_ajax_form', $_POST['de_ajax_form'] );
 			update_post_meta( $post->ID, 'de_success_page', $_POST['de_success_page'] );
 			update_post_meta( $post->ID, 'de_success_message', $_POST['de_success_message'] );
-			
+
 			update_post_meta( $post->ID, 'de_use_admin_email', $_POST['de_use_admin_email'] );
 			update_post_meta( $post->ID, 'de_admin_from_use_global', $_POST['de_admin_from_use_global'] );
 			update_post_meta( $post->ID, 'de_admin_email_from', $_POST['de_admin_email_from'] );
@@ -532,7 +536,7 @@ function de_webform_save_template( $post_id, $post ) {
 			update_post_meta( $post->ID, 'de_admin_email_body_html', $_POST['de_admin_email_body_html'] );
 			update_post_meta( $post->ID, 'de_admin_email_body', $_POST['de_admin_email_body'] );
 			update_post_meta( $post->ID, 'de_admin_attach_uploads', $_POST['de_admin_attach_uploads'] );
-			
+
 			update_post_meta( $post->ID, 'de_use_user_email', $_POST['de_use_user_email'] );
 			update_post_meta( $post->ID, 'de_user_from_use_global', $_POST['de_user_from_use_global'] );
 			update_post_meta( $post->ID, 'de_user_email_from', $_POST['de_user_email_from'] );
@@ -550,11 +554,11 @@ function de_webform_save_template( $post_id, $post ) {
 
 function de_webform_set_template( $template ) {
 	global $direct_queried_object;
-	
+
 	if ( $direct_queried_object && $direct_queried_object->post_type == 'de_webform' && get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) && file_exists( get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true ) ) ) {
 		$template = get_stylesheet_directory() . '/' . get_post_meta( $direct_queried_object->ID, 'de_webform_template', true );
 	}
-	
+
 	return $template;
 }
 
@@ -604,7 +608,7 @@ function de_webform_process( $template = null ) {
 			$uploads_to_delete = array();
 			if ( ! empty( $_FILES ) && is_array( $_FILES ) ) {
 				include_once( ABSPATH . 'wp-admin/includes/file.php' );
-				
+
 				foreach ( $_FILES as $key => $file ) {
 					if ( $file[ 'error' ] == UPLOAD_ERR_NO_FILE ) {
 						continue;
@@ -612,10 +616,10 @@ function de_webform_process( $template = null ) {
 						$de_webform_errors[ $key ] = __( 'File uploading error.', 'direct-edit' );
 					} else {
 						$result = wp_handle_upload( $file, array( 'test_form' => FALSE ) );
-						
+
 						if ( isset( $result[ 'file' ] ) ) {
 							$uploads_to_delete[] = $result[ 'file' ];
-							
+
 							if ( $adminEmailAttachUploads ) {
 								$de_webform_admin_attachments[] = $result[ 'file' ];
 							}
@@ -648,9 +652,9 @@ function de_webform_process( $template = null ) {
 					$de_webform_search[] = '{' . $key . '}';
 					$de_webform_replace[] = trim( $value );
 				}
-				
+
 				do_action( 'de_webform_form_action', $post );
-				
+
 				if ( empty( $de_webform_errors ) ) {
 					// Admin email
 					$adminEmailFrom = str_replace( $de_webform_search, $de_webform_replace, $adminEmailFrom );
@@ -718,7 +722,7 @@ function de_webform_process( $template = null ) {
 					}
 				}
 			}
-			
+
 			// Delete files after sending them
 			do_action( 'de_webform_handle_uploads', $post, $uploads_to_delete );
 			$uploads_to_delete = apply_filters( 'de_webform_save_uploads', $uploads_to_delete, $post );
@@ -727,7 +731,7 @@ function de_webform_process( $template = null ) {
 			}
 		}
 	}
-	
+
 	return $template;
 }
 
@@ -752,9 +756,9 @@ function de_webform_ajax() {
 				$response[ 'messages' ] = '<p>' . implode( '', $de_webform_messages ) . '</p>';
 		}
 	}
-	
+
 	echo json_encode( $response );
-	
+
 	die();
 }
 
@@ -763,17 +767,17 @@ function de_webform_scripts_and_styles() {
 
 	if ( ( $direct_queried_object->ID == get_option( 'de_login_form' ) || de_is_language_post( $direct_queried_object->ID, get_option( 'de_login_form' ) ) ) && ! empty( $_REQUEST[ 'action' ] ) && $_REQUEST[ 'action' ] == 'set-new-password' ) {
 		wp_enqueue_script( 'password-strength-meter' );
-	}	
+	}
 }
 
 function de_webform_js() {
 	global $direct_queried_object;
-	
+
     // Ajax functionality
     if ( $direct_queried_object->post_type == 'de_webform' && ! empty( $direct_queried_object->ID ) && get_post_meta( $direct_queried_object->ID, 'de_ajax_form', true ) ) {
 		$webform_id = get_post_meta( $direct_queried_object->ID, 'de_js_identifier', true );
 
-		$js = 
+		$js =
 		"<script>
 			jQuery(document).ready(function() {
 				var \$form = jQuery('form" . ( $webform_id ? '#' . $webform_id : '' ) . "');
@@ -782,14 +786,14 @@ function de_webform_js() {
 				jQuery('<div>').insertBefore(\$form).attr('id', 'de_webform_messages').append('<div id=\"de_webform_messages_text\">').append('<a href=\"#\" id=\"de_webform_show_form\">" . __( 'Show form', 'direct-edit' ) . "</a>').hide();
 				jQuery('#de_webform_show_form').click(function(e) {
 					e.preventDefault();
-					
+
 					\$form.fadeIn('slow');
 					jQuery('#de_webform_messages').fadeOut('slow');
 				});
 
 				\$form.submit(function(e) {
 					e.preventDefault();
-					
+
 					jQuery.ajax({
 						url: '" . add_query_arg( array( 'action' => 'direct-webform', 'post_id' => $direct_queried_object->ID ), admin_url( 'admin-ajax.php' ) ) . "',
 						type: 'POST',
@@ -835,51 +839,51 @@ function checkPasswordStrength( $pass1,
                                 blacklistArray ) {
         var pass1 = $pass1.val();
     var pass2 = $pass2.val();
- 
+
     // Reset the form & meter
     $submitButton.attr( 'disabled', 'disabled' );
         $strengthResult.removeClass( 'short bad good strong' );
- 
+
     // Extend our blacklist array with those from the inputs & site data
     blacklistArray = blacklistArray.concat( wp.passwordStrength.userInputBlacklist() )
- 
+
     // Get the password strength
     var strength = wp.passwordStrength.meter( pass1, blacklistArray, pass2 );
- 
+
     // Add the strength meter results
     switch ( strength ) {
- 
+
         case 2:
             $strengthResult.addClass( 'bad' ).html( pwsL10n.bad );
             break;
- 
+
         case 3:
             $strengthResult.addClass( 'good' ).html( pwsL10n.good );
             break;
- 
+
         case 4:
             $strengthResult.addClass( 'strong' ).html( pwsL10n.strong );
             break;
- 
+
         case 5:
             $strengthResult.addClass( 'short' ).html( pwsL10n.mismatch );
             break;
- 
+
         default:
             $strengthResult.addClass( 'short' ).html( pwsL10n.short );
- 
+
     }
- 
+
     // The meter function returns a result even if pass2 is empty,
     // enable only the submit button if the password is strong and
     // both passwords are filled up
     if ( 4 === strength && '' !== pass2.trim() ) {
         $submitButton.removeAttr( 'disabled' );
     }
- 
+
     return strength;
 }
- 
+
 jQuery( document ).ready( function( $ ) {
     // Binding to trigger checkPasswordStrength
     $( 'body' ).on( 'keyup', 'input[name=password], input[name=password_retyped]',
@@ -896,7 +900,7 @@ jQuery( document ).ready( function( $ ) {
 });
 </script>
 	<?php
-	}	
+	}
 }
 
 function de_webform_css() {
@@ -936,7 +940,7 @@ function de_webform_conditional_redirect( $location ) {
 
 function de_webform_disable() {
 	global $direct_queried_object;
-	
+
 	$webform_id = get_post_meta( $direct_queried_object->ID, 'de_js_identifier', true );
 	?>
 <script>
