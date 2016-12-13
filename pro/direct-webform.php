@@ -908,6 +908,9 @@ function de_webform_css() {
 	<style>
 #password-strength{
 	background-color:#eee;border-color:#ddd!important;
+    border-radius: 4px;
+    color: black;
+    padding: 8px
 }
 #password-strength.bad{
 	background-color:#ffb78c;
