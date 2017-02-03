@@ -54,7 +54,7 @@ if ( ! empty( $de_webform_messages ) ) {
 				<span id="password-strength"></span>
 				</p>
 				<p>
-				<input id="send" name="send" value="send" type="submit" disabled="disabled" />
+				<input id="send" name="send" value="send" type="submit" />
 				</p>
 			</form>
 		<?php

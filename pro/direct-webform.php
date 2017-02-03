@@ -837,12 +837,14 @@ function checkPasswordStrength( $pass1,
                                 $strengthResult,
                                 $submitButton,
                                 blacklistArray ) {
-        var pass1 = $pass1.val();
+    var pass1 = $pass1.val();
     var pass2 = $pass2.val();
 
     // Reset the form & meter
+    <?php if ( get_option( 'de_strong_passwords' ) ) { ?>
     $submitButton.attr( 'disabled', 'disabled' );
-        $strengthResult.removeClass( 'short bad good strong' );
+    <?php } ?>
+    $strengthResult.removeClass( 'short bad good strong' );
 
     // Extend our blacklist array with those from the inputs & site data
     blacklistArray = blacklistArray.concat( wp.passwordStrength.userInputBlacklist() )
@@ -886,6 +888,11 @@ function checkPasswordStrength( $pass1,
 
 jQuery( document ).ready( function( $ ) {
     // Binding to trigger checkPasswordStrength
+    <?php if ( get_option( 'de_strong_passwords' ) ) { ?>
+    $(function() {
+        $('input[type=submit]').attr( 'disabled', 'disabled' );
+    });
+    <?php } ?>
     $( 'body' ).on( 'keyup', 'input[name=password], input[name=password_retyped]',
         function( event ) {
             checkPasswordStrength(
